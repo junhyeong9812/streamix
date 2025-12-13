@@ -1,0 +1,4 @@
+rootProject.name = 'streamix'
+
+include 'streamix-core'
+include 'streamix-spring-boot-starter'
