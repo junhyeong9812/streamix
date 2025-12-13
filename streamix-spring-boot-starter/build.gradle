@@ -1,0 +1,89 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'tech.yanand.maven-central-publish'
+}
+
+description = 'Streamix Spring Boot Starter - Auto-configuration for Spring Boot'
+
+ext {
+    springBootVersion = '4.0.0'
+}
+
+dependencies {
+    // Streamix Core
+    api project(':streamix-core')
+
+    // Spring Boot
+    implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}"
+
+    // Spring Boot Auto-configuration
+    implementation "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+
+    // Optional: JPA support
+    compileOnly "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+
+    // Optional: Database drivers
+    compileOnly 'org.postgresql:postgresql:42.7.4'
+
+    // Testing
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    testRuntimeOnly 'com.h2database:h2:2.3.232'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'Streamix Spring Boot Starter'
+                description = 'Spring Boot auto-configuration for Streamix media streaming library'
+                url = 'https://github.com/junhyeong9812/streamix'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'junhyeong9812'
+                        name = 'Junhyeong'
+                        url = 'https://github.com/junhyeong9812'
+                    }
+                }
+
+                scm {
+                    url = 'https://github.com/junhyeong9812/streamix'
+                    connection = 'scm:git:git://github.com/junhyeong9812/streamix.git'
+                    developerConnection = 'scm:git:ssh://github.com/junhyeong9812/streamix.git'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = System.getenv("GPG_SIGNING_KEY")
+    def signingPassword = System.getenv("SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+}
+
+mavenCentralPublish {
+    authToken = System.getenv("MAVEN_CENTRAL_TOKEN")
+    publishingType = "AUTOMATIC"
+}
