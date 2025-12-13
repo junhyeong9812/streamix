@@ -1,0 +1,70 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'tech.yanand.maven-central-publish'
+}
+
+description = 'Streamix Core - Media streaming domain logic'
+
+dependencies {
+    // No Spring dependencies - Pure Java module
+
+    // SLF4J API only
+    implementation 'org.slf4j:slf4j-api:2.0.16'
+
+    // File processing
+    implementation 'net.coobird:thumbnailator:0.4.20'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'Streamix Core'
+                description = 'Core domain logic for Streamix media streaming library'
+                url = 'https://github.com/junhyeong9812/streamix'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'junhyeong9812'
+                        name = 'Junhyeong'
+                        url = 'https://github.com/junhyeong9812'
+                    }
+                }
+
+                scm {
+                    url = 'https://github.com/junhyeong9812/streamix'
+                    connection = 'scm:git:git://github.com/junhyeong9812/streamix.git'
+                    developerConnection = 'scm:git:ssh://github.com/junhyeong9812/streamix.git'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = System.getenv("GPG_SIGNING_KEY")
+    def signingPassword = System.getenv("SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+}
+
+mavenCentralPublish {
+    authToken = System.getenv("MAVEN_CENTRAL_TOKEN")
+    publishingType = "AUTOMATIC"
+}
