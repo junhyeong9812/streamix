@@ -4,7 +4,6 @@ import io.github.junhyeong9812.streamix.core.application.port.in.DeleteFileUseCa
 import io.github.junhyeong9812.streamix.core.application.port.in.GetFileMetadataUseCase;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
-import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.FileMetadataJpaRepository;
 import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
 import io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService;
 import org.slf4j.Logger;
@@ -62,36 +61,32 @@ public class StreamixDashboardController {
 
   private static final Logger log = LoggerFactory.getLogger(StreamixDashboardController.class);
 
+  private final StreamingMonitoringService monitoringService;
   private final GetFileMetadataUseCase getFileMetadataUseCase;
   private final DeleteFileUseCase deleteFileUseCase;
   private final FileMetadataPort fileMetadataPort;
-  private final FileMetadataJpaRepository fileRepository;
-  private final StreamingMonitoringService monitoringService;
   private final StreamixProperties properties;
 
   /**
    * StreamixDashboardController를 생성합니다.
    *
+   * @param monitoringService      모니터링 서비스
    * @param getFileMetadataUseCase 메타데이터 조회 유스케이스
    * @param deleteFileUseCase      파일 삭제 유스케이스
    * @param fileMetadataPort       메타데이터 포트
-   * @param fileRepository         파일 리포지토리
-   * @param monitoringService      모니터링 서비스
    * @param properties             Streamix 설정
    */
   public StreamixDashboardController(
+      StreamingMonitoringService monitoringService,
       GetFileMetadataUseCase getFileMetadataUseCase,
       DeleteFileUseCase deleteFileUseCase,
       FileMetadataPort fileMetadataPort,
-      FileMetadataJpaRepository fileRepository,
-      StreamingMonitoringService monitoringService,
       StreamixProperties properties
   ) {
+    this.monitoringService = monitoringService;
     this.getFileMetadataUseCase = getFileMetadataUseCase;
     this.deleteFileUseCase = deleteFileUseCase;
     this.fileMetadataPort = fileMetadataPort;
-    this.fileRepository = fileRepository;
-    this.monitoringService = monitoringService;
     this.properties = properties;
   }
 
