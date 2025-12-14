@@ -300,6 +300,15 @@ public class StreamingMonitoringService {
     }
 
     /**
+     * 이번 달 전송량을 읽기 쉬운 형식으로 반환합니다.
+     *
+     * @return 예: "10.2 TB", "1.5 GB"
+     */
+    public String monthBytesFormatted() {
+      return formatBytes(monthBytes);
+    }
+
+    /**
      * 전체 전송량을 읽기 쉬운 형식으로 반환합니다.
      *
      * @return 예: "10.2 TB", "1.5 GB"
@@ -308,12 +317,38 @@ public class StreamingMonitoringService {
       return formatBytes(totalBytes);
     }
 
+    /**
+     * 평균 스트리밍 시간을 읽기 쉬운 형식으로 반환합니다.
+     *
+     * @return 예: "1분 30초", "45초", "2분 15초"
+     */
+    public String avgDurationFormatted() {
+      return formatDuration(avgDurationMs);
+    }
+
     private String formatBytes(long bytes) {
       if (bytes < 1024) return bytes + " B";
       if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
       if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
       if (bytes < 1024L * 1024 * 1024 * 1024) return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
       return String.format("%.1f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
+    }
+
+    private String formatDuration(double durationMs) {
+      if (durationMs <= 0) return "0초";
+
+      long totalSeconds = (long) (durationMs / 1000);
+      long hours = totalSeconds / 3600;
+      long minutes = (totalSeconds % 3600) / 60;
+      long seconds = totalSeconds % 60;
+
+      if (hours > 0) {
+        return String.format("%d시간 %d분 %d초", hours, minutes, seconds);
+      } else if (minutes > 0) {
+        return String.format("%d분 %d초", minutes, seconds);
+      } else {
+        return String.format("%d초", seconds);
+      }
     }
   }
 
