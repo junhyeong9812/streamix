@@ -129,7 +129,9 @@ public class StreamixApiController {
    * @throws IOException 파일 읽기 오류 시
    */
   @PostMapping("${streamix.api.base-path:/api/streamix}/files")
-  public ResponseEntity<UploadResponse> upload(@RequestParam("file") MultipartFile file) throws IOException {
+  public ResponseEntity<UploadResponse> upload(
+      @RequestParam(name = "file") MultipartFile file
+  ) throws IOException {
     log.info("Uploading file: name={}, size={}, contentType={}",
         file.getOriginalFilename(), file.getSize(), file.getContentType());
 
@@ -158,8 +160,8 @@ public class StreamixApiController {
    */
   @GetMapping("${streamix.api.base-path:/api/streamix}/files")
   public ResponseEntity<PagedResponse<FileInfoResponse>> listFiles(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size
+      @RequestParam(name = "page", defaultValue = "0") int page,
+      @RequestParam(name = "size", defaultValue = "20") int size
   ) {
     log.debug("Listing files: page={}, size={}", page, size);
 
@@ -182,7 +184,9 @@ public class StreamixApiController {
    * @return 파일 상세 정보
    */
   @GetMapping("${streamix.api.base-path:/api/streamix}/files/{id}")
-  public ResponseEntity<FileInfoResponse> getFile(@PathVariable UUID id) {
+  public ResponseEntity<FileInfoResponse> getFile(
+      @PathVariable(name = "id") UUID id
+  ) {
     log.debug("Getting file info: id={}", id);
 
     FileMetadata metadata = getFileMetadataUseCase.getById(id);
@@ -207,8 +211,8 @@ public class StreamixApiController {
    */
   @GetMapping("${streamix.api.base-path:/api/streamix}/files/{id}/stream")
   public ResponseEntity<StreamingResponseBody> streamFile(
-      @PathVariable UUID id,
-      @RequestHeader(value = HttpHeaders.RANGE, required = false) String range
+      @PathVariable(name = "id") UUID id,
+      @RequestHeader(name = HttpHeaders.RANGE, required = false) String range
   ) {
     log.debug("Streaming file: id={}, range={}", id, range);
 
@@ -248,7 +252,9 @@ public class StreamixApiController {
    * @return 썸네일 이미지
    */
   @GetMapping("${streamix.api.base-path:/api/streamix}/files/{id}/thumbnail")
-  public ResponseEntity<StreamingResponseBody> getThumbnail(@PathVariable UUID id) {
+  public ResponseEntity<StreamingResponseBody> getThumbnail(
+      @PathVariable(name = "id") UUID id
+  ) {
     log.debug("Getting thumbnail: id={}", id);
 
     StreamableFile thumbnail = getThumbnailUseCase.getThumbnail(id);
@@ -277,7 +283,9 @@ public class StreamixApiController {
    * @return 204 No Content
    */
   @DeleteMapping("${streamix.api.base-path:/api/streamix}/files/{id}")
-  public ResponseEntity<Void> deleteFile(@PathVariable UUID id) {
+  public ResponseEntity<Void> deleteFile(
+      @PathVariable(name = "id") UUID id
+  ) {
     log.info("Deleting file: id={}", id);
 
     deleteFileUseCase.delete(id);

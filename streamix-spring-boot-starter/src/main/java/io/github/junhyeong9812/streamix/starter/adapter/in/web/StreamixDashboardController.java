@@ -142,8 +142,8 @@ public class StreamixDashboardController {
    */
   @GetMapping("${streamix.dashboard.path:/streamix}/files")
   public String fileList(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size,
+      @RequestParam(name = "page", defaultValue = "0") int page,
+      @RequestParam(name = "size", defaultValue = "20") int size,
       Model model
   ) {
     log.debug("Rendering file list: page={}, size={}", page, size);
@@ -170,7 +170,10 @@ public class StreamixDashboardController {
    * @return 템플릿 이름
    */
   @GetMapping("${streamix.dashboard.path:/streamix}/files/{id}")
-  public String fileDetail(@PathVariable UUID id, Model model) {
+  public String fileDetail(
+      @PathVariable(name = "id") UUID id,
+      Model model
+  ) {
     log.debug("Rendering file detail: id={}", id);
 
     FileMetadata file = getFileMetadataUseCase.getById(id);
@@ -194,7 +197,7 @@ public class StreamixDashboardController {
    */
   @GetMapping("${streamix.dashboard.path:/streamix}/sessions")
   public String sessionList(
-      @RequestParam(defaultValue = "50") int limit,
+      @RequestParam(name = "limit", defaultValue = "50") int limit,
       Model model
   ) {
     log.debug("Rendering session list: limit={}", limit);
@@ -220,7 +223,7 @@ public class StreamixDashboardController {
    */
   @PostMapping("${streamix.dashboard.path:/streamix}/files/{id}/delete")
   public String deleteFile(
-      @PathVariable UUID id,
+      @PathVariable(name = "id") UUID id,
       RedirectAttributes redirectAttributes
   ) {
     log.info("Deleting file from dashboard: id={}", id);

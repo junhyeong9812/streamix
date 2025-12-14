@@ -1,6 +1,12 @@
 package io.github.junhyeong9812.streamix.starter.annotation;
 
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixAutoConfiguration;
+import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixDashboardConfiguration;
+import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixJpaConfiguration;
+import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixMonitoringConfiguration;
+import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixRepositoryConfiguration;
+import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixThumbnailConfiguration;
+import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixWebConfiguration;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
@@ -18,6 +24,8 @@ import java.lang.annotation.*;
  *   <li><b>썸네일 자동 생성</b>: 이미지/비디오 썸네일 생성</li>
  *   <li><b>REST API</b>: 파일 관리 API 엔드포인트 (설정 시)</li>
  *   <li><b>대시보드</b>: 웹 기반 관리 UI (설정 시)</li>
+ *   <li><b>JPA 저장소</b>: 메타데이터 영속화</li>
+ *   <li><b>모니터링</b>: 스트리밍 세션 통계</li>
  * </ul>
  *
  * <h2>기본 사용법</h2>
@@ -55,6 +63,18 @@ import java.lang.annotation.*;
  *   <li>{@link io.github.junhyeong9812.streamix.core.application.service.FileStreamService}</li>
  *   <li>{@link io.github.junhyeong9812.streamix.core.application.service.FileMetadataService}</li>
  *   <li>{@link io.github.junhyeong9812.streamix.core.application.service.ThumbnailService}</li>
+ *   <li>{@link io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService}</li>
+ * </ul>
+ *
+ * <h2>Import되는 Configuration</h2>
+ * <ul>
+ *   <li>{@link StreamixRepositoryConfiguration} - JPA Entity/Repository 스캔</li>
+ *   <li>{@link StreamixAutoConfiguration} - Core 서비스 Bean 등록</li>
+ *   <li>{@link StreamixJpaConfiguration} - JPA 메타데이터 저장소</li>
+ *   <li>{@link StreamixWebConfiguration} - REST API 컨트롤러</li>
+ *   <li>{@link StreamixThumbnailConfiguration} - FFmpeg 썸네일 어댑터</li>
+ *   <li>{@link StreamixMonitoringConfiguration} - 모니터링 서비스</li>
+ *   <li>{@link StreamixDashboardConfiguration} - 대시보드 컨트롤러</li>
  * </ul>
  *
  * <h2>커스터마이징</h2>
@@ -73,11 +93,20 @@ import java.lang.annotation.*;
  * @author junhyeong9812
  * @since 1.0.0
  * @see StreamixAutoConfiguration
+ * @see StreamixRepositoryConfiguration
  * @see io.github.junhyeong9812.streamix.starter.properties.StreamixProperties
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(StreamixAutoConfiguration.class)
+@Import({
+    StreamixRepositoryConfiguration.class,
+    StreamixAutoConfiguration.class,
+    StreamixJpaConfiguration.class,
+    StreamixWebConfiguration.class,
+    StreamixThumbnailConfiguration.class,
+    StreamixMonitoringConfiguration.class,
+    StreamixDashboardConfiguration.class
+})
 public @interface EnableStreamix {
 }
