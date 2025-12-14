@@ -1,154 +1,242 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{streamix/layout}"
-      th:with="currentPage='sessions'">
+      layout:decorate="~{streamix/layout}">
 <head>
   <title>스트리밍 세션</title>
 </head>
 <body>
 <div layout:fragment="content">
-
   <!-- Page Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">스트리밍 세션</h1>
-    <span class="badge bg-success fs-6">
-            <i class="bi bi-broadcast me-1"></i>활성 <span th:text="${#lists.size(activeSessions)}">0</span>
-        </span>
+  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <h1 class="page-title">스트리밍 세션</h1>
+      <p class="page-subtitle">실시간 스트리밍 현황을 모니터링합니다</p>
+    </div>
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" id="autoRefresh">
+      <label class="form-check-label" for="autoRefresh">자동 새로고침</label>
+    </div>
   </div>
 
   <!-- Stats Cards -->
   <div class="row g-4 mb-4">
-    <div class="col-md-3">
-      <div class="card stat-card">
-        <div class="card-body text-center">
-          <div class="text-muted small">오늘 스트리밍</div>
-          <div class="h3 mb-0" th:text="${stats.todaySessions}">0</div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <div class="stat-value" th:text="${stats?.activeSessions} ?: 0">0</div>
+              <div class="stat-label">활성 세션</div>
+            </div>
+            <div class="stat-icon bg-success-soft">
+              <i class="bi bi-broadcast"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card stat-card">
-        <div class="card-body text-center">
-          <div class="text-muted small">이번 달 스트리밍</div>
-          <div class="h3 mb-0" th:text="${stats.monthSessions}">0</div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <div class="stat-value" th:text="${stats?.todaySessions} ?: 0">0</div>
+              <div class="stat-label">오늘 스트리밍</div>
+            </div>
+            <div class="stat-icon bg-info-soft">
+              <i class="bi bi-calendar-check"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card stat-card">
-        <div class="card-body text-center">
-          <div class="text-muted small">전체 스트리밍</div>
-          <div class="h3 mb-0" th:text="${stats.totalSessions}">0</div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <div class="stat-value" th:text="${stats?.monthSessions} ?: 0">0</div>
+              <div class="stat-label">이번 달 스트리밍</div>
+            </div>
+            <div class="stat-icon bg-primary-soft">
+              <i class="bi bi-calendar-month"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card stat-card">
-        <div class="card-body text-center">
-          <div class="text-muted small">총 전송량</div>
-          <div class="h3 mb-0" th:text="${stats.totalBytesFormatted()}">0 B</div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <div class="stat-value" th:text="${stats?.totalBytesFormatted} ?: '0 B'">0 B</div>
+              <div class="stat-label">총 전송량</div>
+            </div>
+            <div class="stat-icon bg-warning-soft">
+              <i class="bi bi-cloud-upload"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Active Sessions -->
-  <div th:if="${!#lists.isEmpty(activeSessions)}" class="card mb-4">
-    <div class="card-header bg-success bg-opacity-10">
-      <h5 class="mb-0 text-success">
-        <i class="bi bi-broadcast me-2"></i>진행 중인 세션
-      </h5>
+  <div class="row g-4">
+    <!-- Active Sessions -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+                    <span>
+                        <i class="bi bi-broadcast me-2"></i>활성 세션
+                        <span class="badge bg-success ms-2" th:if="${!#lists.isEmpty(activeSessions)}"
+                              th:text="${#lists.size(activeSessions)} + ' 스트리밍 중'"></span>
+                    </span>
+        </div>
+        <div class="card-body p-0">
+          <div th:if="${#lists.isEmpty(activeSessions)}" class="empty-state py-5">
+            <div class="empty-state-icon">
+              <i class="bi bi-wifi-off"></i>
+            </div>
+            <div class="empty-state-title">활성 세션 없음</div>
+            <div class="empty-state-text">현재 스트리밍 중인 세션이 없습니다</div>
+          </div>
+
+          <div th:unless="${#lists.isEmpty(activeSessions)}"
+               id="activeSessionsTable" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+              <tr>
+                <th>상태</th>
+                <th>파일 ID</th>
+                <th>클라이언트 IP</th>
+                <th>시작 시간</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="session : ${activeSessions}">
+                <td>
+                  <div class="session-status">
+                    <span class="session-status-dot active"></span>
+                    <span class="small" th:text="${session.status}"></span>
+                  </div>
+                </td>
+                <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 120px;"
+                                              th:text="${session.fileId}" th:title="${session.fileId}"></span>
+                </td>
+                <td th:text="${session.clientIp}"></td>
+                <td>
+                                        <span class="session-duration"
+                                              th:data-start-time="${session.startedAt}"
+                                              th:text="${#temporals.format(session.startedAt, 'HH:mm:ss')}"></span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light">
-          <tr>
-            <th>파일 ID</th>
-            <th>클라이언트 IP</th>
-            <th>Range</th>
-            <th>전송량</th>
-            <th>상태</th>
-            <th>시작 시간</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="session : ${activeSessions}">
-            <td><code th:text="${#strings.abbreviate(session.fileId.toString(), 12)}">uuid</code></td>
-            <td th:text="${session.clientIp ?: '-'}">192.168.1.1</td>
-            <td>
-                            <span th:if="${session.rangeRequest}"
-                                  th:text="${session.rangeStart + '-' + (session.rangeEnd != null ? session.rangeEnd : '')}">0-1023</span>
-              <span th:unless="${session.rangeRequest}" class="text-muted">전체</span>
-            </td>
-            <td th:text="${#numbers.formatDecimal(session.bytesSent / 1024.0, 1, 1)} + ' KB'">0 KB</td>
-            <td>
-              <span class="badge bg-success" th:text="${session.status}">STREAMING</span>
-            </td>
-            <td class="text-muted" th:text="${#temporals.format(session.startedAt, 'HH:mm:ss')}">10:30:00</td>
-          </tr>
-          </tbody>
-        </table>
+
+    <!-- Recent Sessions -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-clock-history me-2"></i>최근 세션
+        </div>
+        <div class="card-body p-0">
+          <div th:if="${#lists.isEmpty(recentSessions)}" class="empty-state py-5">
+            <div class="empty-state-icon">
+              <i class="bi bi-inbox"></i>
+            </div>
+            <div class="empty-state-title">세션 기록 없음</div>
+            <div class="empty-state-text">아직 스트리밍 기록이 없습니다</div>
+          </div>
+
+          <div th:unless="${#lists.isEmpty(recentSessions)}" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+              <tr>
+                <th>상태</th>
+                <th>파일 ID</th>
+                <th>전송량</th>
+                <th>소요 시간</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="session : ${recentSessions}">
+                <td>
+                                        <span class="badge"
+                                              th:classappend="${session.status.name() == 'COMPLETED'} ? 'bg-success' :
+                                                             (${session.status.name() == 'ERROR'} ? 'bg-danger' :
+                                                             (${session.status.name() == 'CANCELLED'} ? 'bg-warning' : 'bg-secondary'))"
+                                              th:text="${session.status}"></span>
+                </td>
+                <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 100px;"
+                                              th:text="${session.fileId}" th:title="${session.fileId}"></span>
+                </td>
+                <td>
+                  <span th:text="${#numbers.formatDecimal(session.bytesSent / 1024 / 1024, 1, 2)} + ' MB'"></span>
+                </td>
+                <td>
+                                        <span th:if="${session.durationMs != null}"
+                                              th:text="${session.durationMs < 1000} ? (${session.durationMs} + 'ms') :
+                                                       (${#numbers.formatDecimal(session.durationMs / 1000, 1, 1)} + 's')">-</span>
+                  <span th:unless="${session.durationMs != null}">-</span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent Sessions -->
-  <div class="card">
-    <div class="card-header bg-transparent">
-      <h5 class="mb-0">최근 세션</h5>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light">
-          <tr>
-            <th>파일 ID</th>
-            <th>클라이언트 IP</th>
-            <th>전송량</th>
-            <th>소요 시간</th>
-            <th>상태</th>
-            <th>시작 시간</th>
-            <th>종료 시간</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="session : ${sessions}">
-            <td><code th:text="${#strings.abbreviate(session.fileId.toString(), 12)}">uuid</code></td>
-            <td th:text="${session.clientIp ?: '-'}">192.168.1.1</td>
-            <td th:text="${#numbers.formatDecimal(session.bytesSent / 1024.0 / 1024.0, 1, 2)} + ' MB'">0 MB</td>
-            <td>
-                            <span th:if="${session.durationMs != null}"
-                                  th:text="${#numbers.formatDecimal(session.durationMs / 1000.0, 1, 1)} + 's'">0s</span>
-              <span th:unless="${session.durationMs != null}" class="text-muted">-</span>
-            </td>
-            <td>
-                            <span class="badge"
-                                  th:classappend="${session.status.name() == 'COMPLETED'} ? 'bg-success' :
-                                                   (${session.status.name() == 'ERROR'} ? 'bg-danger' :
-                                                   (${session.status.name() == 'CANCELLED'} ? 'bg-warning' : 'bg-info'))"
-                                  th:text="${session.status}">COMPLETED</span>
-            </td>
-            <td class="text-muted" th:text="${#temporals.format(session.startedAt, 'MM-dd HH:mm:ss')}">01-01 10:30:00</td>
-            <td class="text-muted">
-                            <span th:if="${session.endedAt != null}"
-                                  th:text="${#temporals.format(session.endedAt, 'HH:mm:ss')}">10:31:00</span>
-              <span th:unless="${session.endedAt != null}">-</span>
-            </td>
-          </tr>
-          <tr th:if="${#lists.isEmpty(sessions)}">
-            <td colspan="7" class="text-center text-muted py-5">
-              <i class="bi bi-broadcast display-4 d-block mb-3"></i>
-              스트리밍 기록이 없습니다
-            </td>
-          </tr>
-          </tbody>
-        </table>
+  <!-- Additional Stats -->
+  <div class="row g-4 mt-0">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-graph-up me-2"></i>통계 요약
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-3">
+              <div class="text-center p-3 rounded" style="background: var(--streamix-bg);">
+                <div class="fs-3 fw-bold text-primary" th:text="${stats?.totalSessions} ?: 0">0</div>
+                <div class="text-muted small">전체 스트리밍 횟수</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center p-3 rounded" style="background: var(--streamix-bg);">
+                <div class="fs-3 fw-bold text-success" th:text="${stats?.todayBytesFormatted} ?: '0 B'">0 B</div>
+                <div class="text-muted small">오늘 전송량</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center p-3 rounded" style="background: var(--streamix-bg);">
+                <div class="fs-3 fw-bold text-info" th:text="${stats?.monthBytesFormatted} ?: '0 B'">0 B</div>
+                <div class="text-muted small">이번 달 전송량</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center p-3 rounded" style="background: var(--streamix-bg);">
+                <div class="fs-3 fw-bold text-warning" th:text="${stats?.avgDurationFormatted} ?: '-'">-</div>
+                <div class="text-muted small">평균 스트리밍 시간</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
 </div>
 </body>
 </html>

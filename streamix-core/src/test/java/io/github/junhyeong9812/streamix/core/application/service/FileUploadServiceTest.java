@@ -3,7 +3,6 @@ package io.github.junhyeong9812.streamix.core.application.service;
 import io.github.junhyeong9812.streamix.core.application.port.in.UploadFileUseCase;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
-import io.github.junhyeong9812.streamix.core.application.port.out.ThumbnailGeneratorPort;
 import io.github.junhyeong9812.streamix.core.domain.exception.InvalidFileTypeException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
@@ -19,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +36,7 @@ class FileUploadServiceTest {
   private FileMetadataPort metadataRepository;
 
   @Mock
-  private ThumbnailGeneratorPort thumbnailGenerator;
+  private ThumbnailService thumbnailService;
 
   private FileUploadService uploadService;
 
@@ -47,7 +45,7 @@ class FileUploadServiceTest {
     uploadService = new FileUploadService(
         storage,
         metadataRepository,
-        List.of(thumbnailGenerator),
+        thumbnailService,
         true,  // thumbnailEnabled
         320,   // thumbnailWidth
         180    // thumbnailHeight
@@ -75,11 +73,8 @@ class FileUploadServiceTest {
       given(storage.save(anyString(), any(InputStream.class), anyLong()))
           .willReturn("/storage/test.jpg");
 
-      given(thumbnailGenerator.supports(FileType.IMAGE)).willReturn(true);
-      given(thumbnailGenerator.generate(any(), anyInt(), anyInt()))
+      given(thumbnailService.generate(eq(FileType.IMAGE), anyString(), anyInt(), anyInt()))
           .willReturn(new byte[100]);
-      given(storage.load(anyString()))
-          .willReturn(new ByteArrayInputStream(content));
 
       given(metadataRepository.save(any(FileMetadata.class)))
           .willAnswer(inv -> inv.getArgument(0));
@@ -94,7 +89,7 @@ class FileUploadServiceTest {
       assertThat(result.contentType()).isEqualTo("image/jpeg");
       assertThat(result.size()).isEqualTo(content.length);
 
-      verify(storage).save(anyString(), any(InputStream.class), eq((long) content.length));
+      verify(storage, atLeast(1)).save(anyString(), any(InputStream.class), anyLong());
       verify(metadataRepository).save(any(FileMetadata.class));
     }
 
@@ -115,7 +110,8 @@ class FileUploadServiceTest {
       given(storage.save(anyString(), any(InputStream.class), anyLong()))
           .willReturn("/storage/video.mp4");
 
-      given(thumbnailGenerator.supports(FileType.VIDEO)).willReturn(false);
+      given(thumbnailService.generate(eq(FileType.VIDEO), anyString(), anyInt(), anyInt()))
+          .willReturn(new byte[100]);
 
       given(metadataRepository.save(any(FileMetadata.class)))
           .willAnswer(inv -> inv.getArgument(0));
@@ -127,6 +123,10 @@ class FileUploadServiceTest {
       assertThat(result).isNotNull();
       assertThat(result.originalName()).isEqualTo("video.mp4");
       assertThat(result.type()).isEqualTo(FileType.VIDEO);
+      assertThat(result.thumbnailGenerated()).isTrue();
+
+      // 비디오도 ThumbnailService를 통해 썸네일 생성
+      verify(thumbnailService).generate(eq(FileType.VIDEO), anyString(), eq(320), eq(180));
     }
 
     @Test
@@ -164,7 +164,8 @@ class FileUploadServiceTest {
 
       given(storage.save(anyString(), any(InputStream.class), anyLong()))
           .willReturn("/storage/photo.png");
-      given(thumbnailGenerator.supports(FileType.IMAGE)).willReturn(false);
+      given(thumbnailService.generate(any(), anyString(), anyInt(), anyInt()))
+          .willThrow(new RuntimeException("Skip thumbnail"));
       given(metadataRepository.save(any(FileMetadata.class)))
           .willAnswer(inv -> inv.getArgument(0));
 
@@ -194,11 +195,7 @@ class FileUploadServiceTest {
       // given
       FileUploadService serviceWithoutThumbnail = new FileUploadService(
           storage,
-          metadataRepository,
-          List.of(thumbnailGenerator),
-          false, // thumbnailEnabled = false
-          320,
-          180
+          metadataRepository
       );
 
       byte[] content = "test content".getBytes();
@@ -221,7 +218,7 @@ class FileUploadServiceTest {
 
       // then
       assertThat(result.thumbnailGenerated()).isFalse();
-      verify(thumbnailGenerator, never()).generate(any(), anyInt(), anyInt());
+      verifyNoInteractions(thumbnailService);
     }
 
     @Test
@@ -240,16 +237,81 @@ class FileUploadServiceTest {
 
       given(storage.save(anyString(), any(InputStream.class), anyLong()))
           .willReturn("/storage/test.jpg");
-      given(storage.load(anyString()))
-          .willReturn(new ByteArrayInputStream(content));
-      given(thumbnailGenerator.supports(FileType.IMAGE)).willReturn(true);
-      given(thumbnailGenerator.generate(any(), anyInt(), anyInt()))
+      given(thumbnailService.generate(any(), anyString(), anyInt(), anyInt()))
           .willThrow(new RuntimeException("Thumbnail generation failed"));
       given(metadataRepository.save(any(FileMetadata.class)))
           .willAnswer(inv -> inv.getArgument(0));
 
       // when
       UploadResult result = uploadService.upload(command);
+
+      // then
+      assertThat(result).isNotNull();
+      assertThat(result.thumbnailGenerated()).isFalse();
+    }
+
+    @Test
+    @DisplayName("썸네일 생성 성공 시 썸네일 경로가 저장된다")
+    void thumbnailPathSavedOnSuccess() {
+      // given
+      byte[] content = "test content".getBytes();
+      byte[] thumbnailBytes = new byte[50];
+      InputStream inputStream = new ByteArrayInputStream(content);
+
+      UploadFileUseCase.UploadCommand command = new UploadFileUseCase.UploadCommand(
+          "test.jpg",
+          "image/jpeg",
+          content.length,
+          inputStream
+      );
+
+      given(storage.save(anyString(), any(InputStream.class), anyLong()))
+          .willReturn("/storage/test.jpg")
+          .willReturn("/storage/test_thumb.jpg");
+      given(thumbnailService.generate(eq(FileType.IMAGE), anyString(), eq(320), eq(180)))
+          .willReturn(thumbnailBytes);
+      given(metadataRepository.save(any(FileMetadata.class)))
+          .willAnswer(inv -> inv.getArgument(0));
+
+      // when
+      UploadResult result = uploadService.upload(command);
+
+      // then
+      assertThat(result.thumbnailGenerated()).isTrue();
+
+      ArgumentCaptor<FileMetadata> captor = ArgumentCaptor.forClass(FileMetadata.class);
+      verify(metadataRepository).save(captor.capture());
+      assertThat(captor.getValue().hasThumbnail()).isTrue();
+    }
+  }
+
+  @Nested
+  @DisplayName("간편 생성자 테스트")
+  class SimpleConstructorTest {
+
+    @Test
+    @DisplayName("간편 생성자로 썸네일 비활성화 서비스를 생성한다")
+    void createServiceWithSimpleConstructor() {
+      // given
+      FileUploadService simpleService = new FileUploadService(storage, metadataRepository);
+
+      byte[] content = "test content".getBytes();
+      InputStream inputStream = new ByteArrayInputStream(content);
+
+      UploadFileUseCase.UploadCommand command = new UploadFileUseCase.UploadCommand(
+          "test.jpg",
+          "image/jpeg",
+          content.length,
+          inputStream
+      );
+
+      given(storage.save(anyString(), any(InputStream.class), anyLong()))
+          .willReturn("/storage/test.jpg");
+      given(metadataRepository.save(any(FileMetadata.class)))
+          .willAnswer(inv -> inv.getArgument(0));
+
+      // when
+      UploadResult result = simpleService.upload(command);
 
       // then
       assertThat(result).isNotNull();

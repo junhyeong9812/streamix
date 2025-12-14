@@ -21,6 +21,7 @@ import java.util.Map;
  *
  * <h2>지원 파일 형식</h2>
  * <table border="1">
+ *   <caption>지원하는 파일 타입 및 MIME 타입</caption>
  *   <tr><th>타입</th><th>확장자</th><th>Content-Type</th></tr>
  *   <tr><td>IMAGE</td><td>jpg, jpeg</td><td>image/jpeg</td></tr>
  *   <tr><td>IMAGE</td><td>png</td><td>image/png</td></tr>
