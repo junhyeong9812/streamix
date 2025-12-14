@@ -10,17 +10,6 @@ import java.util.UUID;
  * <p>업로드된 파일의 모든 메타정보를 담고 있으며, 파일 저장소와 메타데이터 저장소 간의
  * 도메인 객체로 사용됩니다. Java Record로 구현되어 불변성을 보장합니다.</p>
  *
- * <h2>주요 필드</h2>
- * <ul>
- *   <li><b>id</b>: 파일 고유 식별자 (UUID)</li>
- *   <li><b>originalName</b>: 업로드된 원본 파일명</li>
- *   <li><b>type</b>: 파일 타입 (IMAGE/VIDEO)</li>
- *   <li><b>contentType</b>: MIME 타입 (예: image/jpeg)</li>
- *   <li><b>size</b>: 파일 크기 (바이트)</li>
- *   <li><b>storagePath</b>: 실제 저장 경로</li>
- *   <li><b>thumbnailPath</b>: 썸네일 저장 경로 (nullable)</li>
- * </ul>
- *
  * <h2>사용 예시</h2>
  * <pre>{@code
  * // 새 메타데이터 생성
@@ -36,55 +25,29 @@ import java.util.UUID;
  * FileMetadata withThumb = metadata.withThumbnailPath("/storage/uuid_thumb.jpg");
  * }</pre>
  *
+ * @param id            파일 고유 식별자 (UUID)
+ * @param originalName  업로드된 원본 파일명
+ * @param type          파일 타입 (IMAGE/VIDEO)
+ * @param contentType   MIME Content-Type (예: image/jpeg, video/mp4)
+ * @param size          파일 크기 (바이트)
+ * @param storagePath   파일 저장소 내 실제 저장 경로
+ * @param thumbnailPath 썸네일 저장 경로 (nullable)
+ * @param createdAt     파일 생성 시각
+ * @param updatedAt     파일 수정 시각
  * @author junhyeong9812
  * @since 1.0.0
  * @see FileType
  * @see UploadResult
  */
 public record FileMetadata(
-    /**
-     * 파일 고유 식별자.
-     */
     UUID id,
-
-    /**
-     * 업로드된 원본 파일명.
-     */
     String originalName,
-
-    /**
-     * 파일 타입 (IMAGE 또는 VIDEO).
-     */
     FileType type,
-
-    /**
-     * MIME Content-Type (예: "image/jpeg", "video/mp4").
-     */
     String contentType,
-
-    /**
-     * 파일 크기 (바이트 단위).
-     */
     long size,
-
-    /**
-     * 파일 저장소 내 실제 저장 경로.
-     */
     String storagePath,
-
-    /**
-     * 썸네일 저장 경로. 썸네일이 없으면 {@code null}.
-     */
     String thumbnailPath,
-
-    /**
-     * 파일 생성 시각.
-     */
     LocalDateTime createdAt,
-
-    /**
-     * 파일 수정 시각.
-     */
     LocalDateTime updatedAt
 ) {
 

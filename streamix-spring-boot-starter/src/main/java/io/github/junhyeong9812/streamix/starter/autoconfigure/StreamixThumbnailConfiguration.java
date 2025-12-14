@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
  *
  * <h2>자동 등록되는 Bean</h2>
  * <table border="1">
+ *   <caption>자동 등록 Bean 목록</caption>
  *   <tr><th>Bean 이름</th><th>타입</th><th>설명</th></tr>
  *   <tr>
  *     <td>ffmpegThumbnailAdapter</td>
@@ -79,6 +80,13 @@ import org.springframework.context.annotation.Bean;
 public class StreamixThumbnailConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(StreamixThumbnailConfiguration.class);
+
+  /**
+   * StreamixThumbnailConfiguration의 기본 생성자입니다.
+   */
+  public StreamixThumbnailConfiguration() {
+    // 기본 생성자
+  }
 
   /**
    * FFmpeg 기반 비디오 썸네일 생성 어댑터를 생성합니다.

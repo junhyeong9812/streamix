@@ -35,6 +35,7 @@ import java.util.UUID;
  *
  * <h2>제공 API</h2>
  * <table border="1">
+ *   <caption>REST API 엔드포인트 목록</caption>
  *   <tr><th>메서드</th><th>경로</th><th>설명</th></tr>
  *   <tr><td>POST</td><td>/files</td><td>파일 업로드</td></tr>
  *   <tr><td>GET</td><td>/files</td><td>파일 목록 조회 (페이징)</td></tr>

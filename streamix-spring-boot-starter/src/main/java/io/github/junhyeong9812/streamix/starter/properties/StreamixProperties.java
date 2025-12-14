@@ -65,38 +65,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * STREAMIX_THUMBNAIL_ENABLED=true
  * }</pre>
  *
+ * @param storage   파일 저장소 설정
+ * @param thumbnail 썸네일 생성 설정
+ * @param api       REST API 설정
+ * @param dashboard 대시보드 UI 설정
  * @author junhyeong9812
  * @since 1.0.0
  * @see io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixAutoConfiguration
  */
 @ConfigurationProperties(prefix = "streamix")
 public record StreamixProperties(
-    /**
-     * 파일 저장소 설정.
-     *
-     * @see Storage
-     */
     Storage storage,
-
-    /**
-     * 썸네일 생성 설정.
-     *
-     * @see Thumbnail
-     */
     Thumbnail thumbnail,
-
-    /**
-     * REST API 설정.
-     *
-     * @see Api
-     */
     Api api,
-
-    /**
-     * 대시보드 UI 설정.
-     *
-     * @see Dashboard
-     */
     Dashboard dashboard
 ) {
   /**
@@ -114,8 +95,9 @@ public record StreamixProperties(
    *
    * <p>업로드된 파일과 썸네일이 저장되는 위치와 제한을 설정합니다.</p>
    *
-   * <h3>설정 항목</h3>
+   * <h2>설정 항목</h2>
    * <table border="1">
+   *   <caption>Storage 설정 항목</caption>
    *   <tr><th>속성</th><th>기본값</th><th>설명</th></tr>
    *   <tr><td>base-path</td><td>./streamix-data</td><td>파일 저장 기본 경로</td></tr>
    *   <tr><td>max-file-size</td><td>104857600 (100MB)</td><td>최대 업로드 파일 크기 (바이트)</td></tr>
@@ -159,8 +141,9 @@ public record StreamixProperties(
    * <p>이미지와 비디오의 썸네일 생성 동작을 제어합니다.
    * 비디오 썸네일 생성에는 시스템에 FFmpeg가 설치되어 있어야 합니다.</p>
    *
-   * <h3>설정 항목</h3>
+   * <h2>설정 항목</h2>
    * <table border="1">
+   *   <caption>Thumbnail 설정 항목</caption>
    *   <tr><th>속성</th><th>기본값</th><th>설명</th></tr>
    *   <tr><td>enabled</td><td>true</td><td>썸네일 생성 활성화 여부</td></tr>
    *   <tr><td>width</td><td>320</td><td>썸네일 너비 (픽셀)</td></tr>
@@ -168,7 +151,7 @@ public record StreamixProperties(
    *   <tr><td>ffmpeg-path</td><td>ffmpeg</td><td>FFmpeg 실행 파일 경로</td></tr>
    * </table>
    *
-   * <h3>FFmpeg 설치</h3>
+   * <h2>FFmpeg 설치</h2>
    * <p>비디오 썸네일 생성을 위해서는 FFmpeg가 필요합니다:</p>
    * <ul>
    *   <li>Ubuntu/Debian: {@code sudo apt install ffmpeg}</li>
@@ -202,14 +185,15 @@ public record StreamixProperties(
    *
    * <p>Streamix가 제공하는 REST API 엔드포인트를 제어합니다.</p>
    *
-   * <h3>설정 항목</h3>
+   * <h2>설정 항목</h2>
    * <table border="1">
+   *   <caption>Api 설정 항목</caption>
    *   <tr><th>속성</th><th>기본값</th><th>설명</th></tr>
    *   <tr><td>enabled</td><td>true</td><td>API 활성화 여부</td></tr>
    *   <tr><td>base-path</td><td>/api/streamix</td><td>API 기본 경로</td></tr>
    * </table>
    *
-   * <h3>제공되는 엔드포인트</h3>
+   * <h2>제공되는 엔드포인트</h2>
    * <ul>
    *   <li>{@code POST {base-path}/files} - 파일 업로드</li>
    *   <li>{@code GET {base-path}/files} - 파일 목록 조회</li>
@@ -240,14 +224,15 @@ public record StreamixProperties(
    * <p>웹 기반 관리 대시보드의 활성화 및 경로를 제어합니다.
    * 대시보드에서는 파일 목록 조회, 업로드, 미리보기, 삭제 등이 가능합니다.</p>
    *
-   * <h3>설정 항목</h3>
+   * <h2>설정 항목</h2>
    * <table border="1">
+   *   <caption>Dashboard 설정 항목</caption>
    *   <tr><th>속성</th><th>기본값</th><th>설명</th></tr>
    *   <tr><td>enabled</td><td>true</td><td>대시보드 활성화 여부</td></tr>
    *   <tr><td>path</td><td>/streamix</td><td>대시보드 접근 경로</td></tr>
    * </table>
    *
-   * <h3>제공되는 페이지</h3>
+   * <h2>제공되는 페이지</h2>
    * <ul>
    *   <li>{@code {path}} - 메인 대시보드 (통계, 최근 업로드)</li>
    *   <li>{@code {path}/files} - 파일 목록 (그리드/리스트 뷰)</li>
@@ -255,7 +240,7 @@ public record StreamixProperties(
    *   <li>{@code {path}/monitor} - 스트리밍 모니터</li>
    * </ul>
    *
-   * <h3>보안 고려사항</h3>
+   * <h2>보안 고려사항</h2>
    * <p>프로덕션 환경에서는 대시보드를 비활성화하거나
    * Spring Security로 인증을 추가하는 것을 권장합니다.</p>
    *

@@ -52,6 +52,13 @@ import java.util.stream.Collectors;
 public class InMemoryMetadataAdapter implements FileMetadataPort {
 
   /**
+   * InMemoryMetadataAdapter의 기본 생성자입니다.
+   */
+  public InMemoryMetadataAdapter() {
+    // 기본 생성자
+  }
+
+  /**
    * 메모리 저장소. ConcurrentHashMap으로 스레드 안전성을 보장합니다.
    */
   private final Map<UUID, FileMetadata> store = new ConcurrentHashMap<>();

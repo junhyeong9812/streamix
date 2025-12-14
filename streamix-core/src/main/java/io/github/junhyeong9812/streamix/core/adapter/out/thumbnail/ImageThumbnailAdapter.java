@@ -63,6 +63,12 @@ public class ImageThumbnailAdapter implements ThumbnailGeneratorPort {
   private static final Logger log = LoggerFactory.getLogger(ImageThumbnailAdapter.class);
 
   /**
+   * ImageThumbnailAdapter의 기본 생성자입니다.
+   */
+  public ImageThumbnailAdapter() {
+  }
+
+  /**
    * 출력 JPEG 품질 (0.0 ~ 1.0).
    */
   private static final double OUTPUT_QUALITY = 0.8;

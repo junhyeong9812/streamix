@@ -15,6 +15,7 @@ import java.util.UUID;
  *
  * <h2>응답 필드</h2>
  * <table border="1">
+ *   <caption>파일 정보 응답 필드</caption>
  *   <tr><th>필드</th><th>타입</th><th>설명</th></tr>
  *   <tr><td>id</td><td>UUID</td><td>파일 고유 식별자</td></tr>
  *   <tr><td>originalName</td><td>String</td><td>원본 파일명</td></tr>
@@ -53,63 +54,30 @@ import java.util.UUID;
  * }
  * }</pre>
  *
+ * @param id           파일 고유 식별자
+ * @param originalName 원본 파일명
+ * @param type         파일 타입 (IMAGE/VIDEO)
+ * @param contentType  MIME Content-Type
+ * @param size         파일 크기 (바이트)
+ * @param hasThumbnail 썸네일 존재 여부
+ * @param createdAt    파일 생성(업로드) 시각
+ * @param updatedAt    파일 수정 시각
+ * @param streamUrl    파일 스트리밍 API URL
+ * @param thumbnailUrl 썸네일 API URL (null 가능)
  * @author junhyeong9812
  * @since 1.0.0
  * @see FileMetadata
  */
 public record FileInfoResponse(
-    /**
-     * 파일 고유 식별자.
-     */
     UUID id,
-
-    /**
-     * 원본 파일명.
-     */
     String originalName,
-
-    /**
-     * 파일 타입 (IMAGE 또는 VIDEO).
-     */
     FileType type,
-
-    /**
-     * MIME Content-Type.
-     */
     String contentType,
-
-    /**
-     * 파일 크기 (바이트 단위).
-     */
     long size,
-
-    /**
-     * 썸네일 존재 여부.
-     */
     boolean hasThumbnail,
-
-    /**
-     * 파일 생성(업로드) 시각.
-     */
     LocalDateTime createdAt,
-
-    /**
-     * 파일 수정 시각.
-     */
     LocalDateTime updatedAt,
-
-    /**
-     * 파일 스트리밍 API URL.
-     *
-     * <p>예: /api/streamix/files/{id}/stream</p>
-     */
     String streamUrl,
-
-    /**
-     * 썸네일 API URL.
-     *
-     * <p>썸네일이 없는 경우 {@code null}입니다.</p>
-     */
     String thumbnailUrl
 ) {
   /**

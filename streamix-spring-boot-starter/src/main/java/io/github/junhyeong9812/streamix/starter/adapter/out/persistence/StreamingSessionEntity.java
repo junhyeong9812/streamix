@@ -261,46 +261,57 @@ public class StreamingSessionEntity {
 
   // ========== Getters ==========
 
+  /** @return 세션 ID */
   public Long getId() {
     return id;
   }
 
+  /** @return 파일 ID */
   public UUID getFileId() {
     return fileId;
   }
 
+  /** @return 클라이언트 IP */
   public String getClientIp() {
     return clientIp;
   }
 
+  /** @return User-Agent */
   public String getUserAgent() {
     return userAgent;
   }
 
+  /** @return Range 시작 바이트 */
   public Long getRangeStart() {
     return rangeStart;
   }
 
+  /** @return Range 종료 바이트 */
   public Long getRangeEnd() {
     return rangeEnd;
   }
 
+  /** @return 전송 바이트 수 */
   public long getBytesSent() {
     return bytesSent;
   }
 
+  /** @return 지속 시간(ms) */
   public Long getDurationMs() {
     return durationMs;
   }
 
+  /** @return 세션 상태 */
   public SessionStatus getStatus() {
     return status;
   }
 
+  /** @return 시작 시각 */
   public LocalDateTime getStartedAt() {
     return startedAt;
   }
 
+  /** @return 종료 시각 */
   public LocalDateTime getEndedAt() {
     return endedAt;
   }

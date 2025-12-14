@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
  *
  * <h2>응답 필드</h2>
  * <table border="1">
+ *   <caption>에러 응답 필드</caption>
  *   <tr><th>필드</th><th>타입</th><th>설명</th></tr>
  *   <tr><td>timestamp</td><td>LocalDateTime</td><td>에러 발생 시각</td></tr>
  *   <tr><td>status</td><td>int</td><td>HTTP 상태 코드</td></tr>
@@ -41,49 +42,22 @@ import java.time.LocalDateTime;
  * }
  * }</pre>
  *
+ * @param timestamp 에러 발생 시각
+ * @param status    HTTP 상태 코드 (예: 400, 404, 500)
+ * @param error     HTTP 상태 텍스트 (예: "Not Found")
+ * @param code      Streamix 에러 코드
+ * @param message   에러 메시지
+ * @param path      요청 경로
  * @author junhyeong9812
  * @since 1.0.0
- * @see GlobalExceptionHandler
+ * @see io.github.junhyeong9812.streamix.starter.adapter.in.web.GlobalExceptionHandler
  */
 public record ErrorResponse(
-    /**
-     * 에러 발생 시각.
-     */
     LocalDateTime timestamp,
-
-    /**
-     * HTTP 상태 코드.
-     *
-     * <p>예: 400, 404, 500</p>
-     */
     int status,
-
-    /**
-     * HTTP 상태 텍스트.
-     *
-     * <p>예: "Bad Request", "Not Found", "Internal Server Error"</p>
-     */
     String error,
-
-    /**
-     * Streamix 에러 코드.
-     *
-     * <p>클라이언트에서 에러 유형을 식별하는 데 사용됩니다.</p>
-     */
     String code,
-
-    /**
-     * 에러 메시지.
-     *
-     * <p>사용자에게 표시할 수 있는 설명 메시지입니다.</p>
-     */
     String message,
-
-    /**
-     * 요청 경로.
-     *
-     * <p>에러가 발생한 API 엔드포인트 경로입니다.</p>
-     */
     String path
 ) {
   /**

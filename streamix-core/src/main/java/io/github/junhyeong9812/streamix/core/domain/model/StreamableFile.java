@@ -32,43 +32,21 @@ import java.util.Objects;
  * }
  * }</pre>
  *
+ * @param metadata      파일 메타데이터
+ * @param inputStream   파일 데이터 스트림 (전체 또는 Range 해당 부분)
+ * @param contentLength 콘텐츠 길이 (바이트). 전체 요청시 파일 크기, Range 요청시 범위 크기
+ * @param rangeStart    Range 시작 바이트 (0-based). 전체 요청시 null
+ * @param rangeEnd      Range 종료 바이트 (inclusive). 전체 요청시 null
  * @author junhyeong9812
  * @since 1.0.0
  * @see FileMetadata
  * @see io.github.junhyeong9812.streamix.core.application.port.in.StreamFileUseCase
  */
 public record StreamableFile(
-    /**
-     * 파일 메타데이터.
-     */
     FileMetadata metadata,
-
-    /**
-     * 파일 데이터 스트림.
-     *
-     * <p>전체 파일 또는 Range에 해당하는 부분 데이터를 포함합니다.</p>
-     */
     InputStream inputStream,
-
-    /**
-     * 콘텐츠 길이 (바이트).
-     *
-     * <p>전체 요청시 파일 전체 크기, Range 요청시 해당 범위의 크기입니다.</p>
-     */
     long contentLength,
-
-    /**
-     * Range 시작 바이트 (0-based).
-     *
-     * <p>전체 요청시 {@code null}.</p>
-     */
     Long rangeStart,
-
-    /**
-     * Range 종료 바이트 (inclusive).
-     *
-     * <p>전체 요청시 {@code null}.</p>
-     */
     Long rangeEnd
 ) implements Closeable {
 

@@ -10,6 +10,7 @@ import java.util.List;
  *
  * <h2>응답 필드</h2>
  * <table border="1">
+ *   <caption>페이징 응답 필드</caption>
  *   <tr><th>필드</th><th>타입</th><th>설명</th></tr>
  *   <tr><td>content</td><td>List&lt;T&gt;</td><td>데이터 목록</td></tr>
  *   <tr><td>page</td><td>int</td><td>현재 페이지 번호 (0부터 시작)</td></tr>
@@ -54,46 +55,24 @@ import java.util.List;
  * }
  * }</pre>
  *
+ * @param content       데이터 목록 (현재 페이지 항목들)
+ * @param page          현재 페이지 번호 (0부터 시작)
+ * @param size          페이지 크기 (한 페이지당 항목 수)
+ * @param totalElements 전체 항목 수
+ * @param totalPages    전체 페이지 수
+ * @param hasNext       다음 페이지 존재 여부
+ * @param hasPrevious   이전 페이지 존재 여부
  * @param <T> 목록 항목의 타입
  * @author junhyeong9812
  * @since 1.0.0
  */
 public record PagedResponse<T>(
-    /**
-     * 데이터 목록.
-     *
-     * <p>현재 페이지에 해당하는 항목들입니다.</p>
-     */
     List<T> content,
-
-    /**
-     * 현재 페이지 번호 (0부터 시작).
-     */
     int page,
-
-    /**
-     * 페이지 크기 (한 페이지당 항목 수).
-     */
     int size,
-
-    /**
-     * 전체 항목 수.
-     */
     long totalElements,
-
-    /**
-     * 전체 페이지 수.
-     */
     int totalPages,
-
-    /**
-     * 다음 페이지 존재 여부.
-     */
     boolean hasNext,
-
-    /**
-     * 이전 페이지 존재 여부.
-     */
     boolean hasPrevious
 ) {
   /**

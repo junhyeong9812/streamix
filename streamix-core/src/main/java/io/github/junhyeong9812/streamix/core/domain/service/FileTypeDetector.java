@@ -60,6 +60,12 @@ import java.util.Map;
 public class FileTypeDetector {
 
   /**
+   * FileTypeDetector의 기본 생성자입니다.
+   */
+  public FileTypeDetector() {
+  }
+
+  /**
    * 확장자별 Content-Type 매핑 테이블.
    */
   private static final Map<String, String> EXTENSION_TO_CONTENT_TYPE = Map.ofEntries(

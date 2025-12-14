@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
  *
  * <h2>자동 등록되는 Bean</h2>
  * <table border="1">
+ *   <caption>자동 등록 Bean 목록</caption>
  *   <tr><th>Bean 타입</th><th>설명</th><th>조건</th></tr>
  *   <tr>
  *     <td>{@link FileStoragePort}</td>

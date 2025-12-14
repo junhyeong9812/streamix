@@ -270,23 +270,24 @@ public class StreamingMonitoringService {
 
   /**
    * 대시보드 통계 DTO.
+   *
+   * @param activeSessions 현재 활성 세션 수
+   * @param todaySessions  오늘 세션 수
+   * @param monthSessions  이번 달 세션 수
+   * @param totalSessions  전체 세션 수
+   * @param todayBytes     오늘 전송 바이트
+   * @param monthBytes     이번 달 전송 바이트
+   * @param totalBytes     전체 전송 바이트
+   * @param avgDurationMs  평균 스트리밍 시간 (밀리초)
    */
   public record DashboardStats(
-      /** 현재 활성 세션 수 */
       long activeSessions,
-      /** 오늘 세션 수 */
       long todaySessions,
-      /** 이번 달 세션 수 */
       long monthSessions,
-      /** 전체 세션 수 */
       long totalSessions,
-      /** 오늘 전송 바이트 */
       long todayBytes,
-      /** 이번 달 전송 바이트 */
       long monthBytes,
-      /** 전체 전송 바이트 */
       long totalBytes,
-      /** 평균 스트리밍 시간 (밀리초) */
       double avgDurationMs
   ) {
     /**
@@ -318,24 +319,26 @@ public class StreamingMonitoringService {
 
   /**
    * 파일별 스트리밍 통계 DTO.
+   *
+   * @param fileId         파일 ID
+   * @param streamCount    총 스트리밍 횟수
+   * @param totalBytesSent 총 전송 바이트
    */
   public record FileStreamingStats(
-      /** 파일 ID */
       UUID fileId,
-      /** 총 스트리밍 횟수 */
       long streamCount,
-      /** 총 전송 바이트 */
       long totalBytesSent
   ) {
   }
 
   /**
    * 인기 파일 DTO.
+   *
+   * @param fileId      파일 ID
+   * @param streamCount 스트리밍 횟수
    */
   public record PopularFile(
-      /** 파일 ID */
       UUID fileId,
-      /** 스트리밍 횟수 */
       long streamCount
   ) {
   }

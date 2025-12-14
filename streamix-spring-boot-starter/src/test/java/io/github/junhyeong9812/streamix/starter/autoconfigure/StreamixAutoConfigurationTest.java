@@ -3,6 +3,7 @@ package io.github.junhyeong9812.streamix.starter.autoconfigure;
 import io.github.junhyeong9812.streamix.core.application.port.in.*;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
+import io.github.junhyeong9812.streamix.core.adapter.out.metadata.InMemoryMetadataAdapter;
 import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StreamixAutoConfigurationTest {
 
   private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-      .withConfiguration(AutoConfigurations.of(StreamixAutoConfiguration.class));
+      .withConfiguration(AutoConfigurations.of(StreamixAutoConfiguration.class))
+      // InMemory 메타데이터 어댑터 제공 (JPA 없이 테스트)
+      .withBean(FileMetadataPort.class, InMemoryMetadataAdapter::new);
 
   @Test
   @DisplayName("기본 설정으로 핵심 Bean이 등록된다")

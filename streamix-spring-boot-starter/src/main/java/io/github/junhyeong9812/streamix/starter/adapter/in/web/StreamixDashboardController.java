@@ -28,6 +28,7 @@ import java.util.UUID;
  *
  * <h2>제공 페이지</h2>
  * <table border="1">
+ *   <caption>대시보드 페이지 목록</caption>
  *   <tr><th>경로</th><th>설명</th></tr>
  *   <tr><td>/streamix</td><td>메인 대시보드 (통계 요약)</td></tr>
  *   <tr><td>/streamix/files</td><td>파일 목록</td></tr>

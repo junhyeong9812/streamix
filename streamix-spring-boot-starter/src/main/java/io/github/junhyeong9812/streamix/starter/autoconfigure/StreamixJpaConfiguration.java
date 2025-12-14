@@ -30,6 +30,7 @@ import javax.sql.DataSource;
  *
  * <h2>자동 등록되는 Bean</h2>
  * <table border="1">
+ *   <caption>자동 등록 Bean 목록</caption>
  *   <tr><th>Bean 타입</th><th>설명</th></tr>
  *   <tr>
  *     <td>{@link FileMetadataPort}</td>
@@ -92,6 +93,12 @@ import javax.sql.DataSource;
 public class StreamixJpaConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(StreamixJpaConfiguration.class);
+
+  /**
+   * StreamixJpaConfiguration의 기본 생성자입니다.
+   */
+  public StreamixJpaConfiguration() {
+  }
 
   /**
    * JPA 기반 메타데이터 저장소 어댑터를 생성합니다.

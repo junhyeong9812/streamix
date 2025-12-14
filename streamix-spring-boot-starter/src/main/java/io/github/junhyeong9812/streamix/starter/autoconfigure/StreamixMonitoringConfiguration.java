@@ -29,6 +29,7 @@ import javax.sql.DataSource;
  *
  * <h2>자동 등록되는 Bean</h2>
  * <table border="1">
+ *   <caption>자동 등록 Bean 목록</caption>
  *   <tr><th>Bean 타입</th><th>설명</th></tr>
  *   <tr>
  *     <td>{@link StreamingMonitoringService}</td>
@@ -63,6 +64,12 @@ import javax.sql.DataSource;
 public class StreamixMonitoringConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(StreamixMonitoringConfiguration.class);
+
+  /**
+   * StreamixMonitoringConfiguration의 기본 생성자입니다.
+   */
+  public StreamixMonitoringConfiguration() {
+  }
 
   /**
    * 스트리밍 모니터링 서비스를 생성합니다.
