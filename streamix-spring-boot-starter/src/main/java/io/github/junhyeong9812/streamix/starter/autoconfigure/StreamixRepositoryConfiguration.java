@@ -4,10 +4,12 @@ import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPo
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.FileMetadataJpaRepository;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.JpaFileMetadataAdapter;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.StreamingSessionRepository;
+import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
 import io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,6 +73,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @see StreamingSessionRepository
  */
 @Configuration
+@EnableConfigurationProperties(StreamixProperties.class)
 @EntityScan(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
 @EnableJpaRepositories(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
 public class StreamixRepositoryConfiguration {
