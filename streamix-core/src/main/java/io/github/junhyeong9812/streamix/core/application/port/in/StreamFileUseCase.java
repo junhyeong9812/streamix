@@ -12,6 +12,7 @@ import java.util.UUID;
  *
  * <h2>HTTP Range 요청 지원</h2>
  * <table border="1">
+ *   <caption>HTTP Range 요청 및 응답 매핑</caption>
  *   <tr><th>요청</th><th>응답</th><th>설명</th></tr>
  *   <tr><td>Range 헤더 없음</td><td>200 OK</td><td>전체 파일</td></tr>
  *   <tr><td>Range: bytes=0-1023</td><td>206 Partial Content</td><td>처음 1KB</td></tr>
