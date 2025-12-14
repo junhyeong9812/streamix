@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{streamix/layout}"
+      th:with="currentPage='files'">
+<head>
+  <title th:text="${file.originalName()}">파일 상세</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a th:href="@{${@streamixProperties.dashboard.path} + '/files'}">파일 관리</a>
+      </li>
+      <li class="breadcrumb-item active" th:text="${file.originalName()}">파일명</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0" th:text="${file.originalName()}">파일명</h1>
+    <div class="btn-group">
+      <a th:href="@{${apiBasePath} + '/files/' + ${file.id()} + '/stream'}"
+         class="btn btn-streamix" target="_blank">
+        <i class="bi bi-play-fill me-1"></i>스트리밍
+      </a>
+      <button type="button" class="btn btn-outline-danger"
+              data-bs-toggle="modal" data-bs-target="#deleteModal">
+        <i class="bi bi-trash me-1"></i>삭제
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Preview / Player -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">미리보기</h5>
+        </div>
+        <div class="card-body text-center bg-dark rounded-bottom">
+          <!-- Video Player -->
+          <video th:if="${file.isVideo()}"
+                 controls
+                 class="w-100"
+                 style="max-height: 500px"
+                 th:poster="${file.hasThumbnail()} ? @{${apiBasePath} + '/files/' + ${file.id()} + '/thumbnail'} : null">
+            <source th:src="@{${apiBasePath} + '/files/' + ${file.id()} + '/stream'}"
+                    th:type="${file.contentType()}">
+            브라우저가 비디오를 지원하지 않습니다.
+          </video>
+
+          <!-- Image Preview -->
+          <img th:unless="${file.isVideo()}"
+               th:src="@{${apiBasePath} + '/files/' + ${file.id()} + '/stream'}"
+               class="img-fluid"
+               style="max-height: 500px"
+               th:alt="${file.originalName()}">
+        </div>
+      </div>
+    </div>
+
+    <!-- File Info -->
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">파일 정보</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless mb-0">
+            <tr>
+              <td class="text-muted" style="width: 100px">ID</td>
+              <td><code th:text="${file.id()}">uuid</code></td>
+            </tr>
+            <tr>
+              <td class="text-muted">타입</td>
+              <td>
+                                <span class="badge" th:classappend="${file.isVideo()} ? 'bg-primary' : 'bg-success'"
+                                      th:text="${file.type()}">VIDEO</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">MIME</td>
+              <td th:text="${file.contentType()}">video/mp4</td>
+            </tr>
+            <tr>
+              <td class="text-muted">크기</td>
+              <td th:text="${#numbers.formatDecimal(file.size() / 1024.0 / 1024.0, 1, 2)} + ' MB'">10 MB</td>
+            </tr>
+            <tr>
+              <td class="text-muted">썸네일</td>
+              <td>
+                                <span th:if="${file.hasThumbnail()}" class="text-success">
+                                    <i class="bi bi-check-circle"></i> 생성됨
+                                </span>
+                <span th:unless="${file.hasThumbnail()}" class="text-muted">
+                                    <i class="bi bi-x-circle"></i> 없음
+                                </span>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">업로드</td>
+              <td th:text="${#temporals.format(file.createdAt(), 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 10:00:00</td>
+            </tr>
+            <tr>
+              <td class="text-muted">수정</td>
+              <td th:text="${#temporals.format(file.updatedAt(), 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 10:00:00</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Streaming Stats -->
+      <div class="card mb-4">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">스트리밍 통계</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless mb-0">
+            <tr>
+              <td class="text-muted">총 스트리밍</td>
+              <td class="fw-bold" th:text="${fileStats.streamCount} + '회'">0회</td>
+            </tr>
+            <tr>
+              <td class="text-muted">총 전송량</td>
+              <td class="fw-bold"
+                  th:text="${#numbers.formatDecimal(fileStats.totalBytesSent / 1024.0 / 1024.0, 1, 2)} + ' MB'">0 MB</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- API URLs -->
+      <div class="card">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">API URL</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label small text-muted">스트리밍 URL</label>
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control bg-light" readonly
+                     th:value="@{${apiBasePath} + '/files/' + ${file.id()} + '/stream'}"
+                     id="streamUrl">
+              <button class="btn btn-outline-secondary" type="button"
+                      onclick="copyToClipboard('streamUrl')">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+          <div th:if="${file.hasThumbnail()}">
+            <label class="form-label small text-muted">썸네일 URL</label>
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control bg-light" readonly
+                     th:value="@{${apiBasePath} + '/files/' + ${file.id()} + '/thumbnail'}"
+                     id="thumbnailUrl">
+              <button class="btn btn-outline-secondary" type="button"
+                      onclick="copyToClipboard('thumbnailUrl')">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">파일 삭제</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>정말로 <strong th:text="${file.originalName()}">파일명</strong>을 삭제하시겠습니까?</p>
+          <p class="text-muted small mb-0">이 작업은 되돌릴 수 없습니다.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <form th:action="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id()} + '/delete'}" method="post">
+            <button type="submit" class="btn btn-danger">삭제</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copyToClipboard(inputId) {
+      const input = document.getElementById(inputId);
+      navigator.clipboard.writeText(input.value);
+
+      // 복사 완료 피드백
+      const button = input.nextElementSibling;
+      const originalHtml = button.innerHTML;
+      button.innerHTML = '<i class="bi bi-check"></i>';
+      setTimeout(() => {
+        button.innerHTML = originalHtml;
+      }, 1500);
+    }
+  </script>
+
+</div>
+</body>
+</html>

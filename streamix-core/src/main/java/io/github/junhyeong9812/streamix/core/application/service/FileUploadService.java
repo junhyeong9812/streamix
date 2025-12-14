@@ -3,7 +3,6 @@ package io.github.junhyeong9812.streamix.core.application.service;
 import io.github.junhyeong9812.streamix.core.application.port.in.UploadFileUseCase;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
-import io.github.junhyeong9812.streamix.core.application.port.out.ThumbnailGeneratorPort;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
 import io.github.junhyeong9812.streamix.core.domain.model.UploadResult;
@@ -12,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,20 +30,36 @@ import java.util.UUID;
  *
  * <h2>썸네일 생성</h2>
  * <p>썸네일 생성은 선택적이며, 실패해도 업로드 자체는 성공합니다.
- * 등록된 ThumbnailGeneratorPort 중 해당 파일 타입을 지원하는 구현체를 사용합니다.</p>
+ * {@link ThumbnailService}를 통해 이미지와 비디오 모두에 대해 썸네일을 생성합니다.</p>
  *
  * <h2>의존성</h2>
  * <ul>
  *   <li>{@link FileStoragePort} - 파일 저장</li>
  *   <li>{@link FileMetadataPort} - 메타데이터 저장</li>
- *   <li>{@link ThumbnailGeneratorPort} - 썸네일 생성 (0개 이상)</li>
+ *   <li>{@link ThumbnailService} - 썸네일 생성 (Composite)</li>
  * </ul>
+ *
+ * <h2>사용 예시</h2>
+ * <pre>{@code
+ * // 기본 구성
+ * FileUploadService service = new FileUploadService(
+ *     new LocalFileStorageAdapter("/data"),
+ *     new InMemoryMetadataAdapter(),
+ *     new ThumbnailService(),
+ *     true,   // 썸네일 활성화
+ *     320,    // 썸네일 너비
+ *     180     // 썸네일 높이
+ * );
+ *
+ * // 업로드
+ * UploadResult result = service.upload(command);
+ * }</pre>
  *
  * @author junhyeong9812
  * @since 1.0.0
  * @see UploadFileUseCase
  * @see FileStoragePort
- * @see ThumbnailGeneratorPort
+ * @see ThumbnailService
  */
 public class FileUploadService implements UploadFileUseCase {
 
@@ -54,7 +67,7 @@ public class FileUploadService implements UploadFileUseCase {
 
   private final FileStoragePort storage;
   private final FileMetadataPort metadataRepository;
-  private final List<ThumbnailGeneratorPort> thumbnailGenerators;
+  private final ThumbnailService thumbnailService;
   private final FileTypeDetector fileTypeDetector;
 
   private final boolean thumbnailEnabled;
@@ -64,28 +77,41 @@ public class FileUploadService implements UploadFileUseCase {
   /**
    * FileUploadService를 생성합니다.
    *
-   * @param storage             파일 저장소 포트
-   * @param metadataRepository  메타데이터 저장소 포트
-   * @param thumbnailGenerators 썸네일 생성기 목록
-   * @param thumbnailEnabled    썸네일 생성 활성화 여부
-   * @param thumbnailWidth      썸네일 너비 (픽셀)
-   * @param thumbnailHeight     썸네일 높이 (픽셀)
+   * @param storage            파일 저장소 포트
+   * @param metadataRepository 메타데이터 저장소 포트
+   * @param thumbnailService   썸네일 생성 서비스
+   * @param thumbnailEnabled   썸네일 생성 활성화 여부
+   * @param thumbnailWidth     썸네일 너비 (픽셀)
+   * @param thumbnailHeight    썸네일 높이 (픽셀)
    */
   public FileUploadService(
       FileStoragePort storage,
       FileMetadataPort metadataRepository,
-      List<ThumbnailGeneratorPort> thumbnailGenerators,
+      ThumbnailService thumbnailService,
       boolean thumbnailEnabled,
       int thumbnailWidth,
       int thumbnailHeight
   ) {
     this.storage = storage;
     this.metadataRepository = metadataRepository;
-    this.thumbnailGenerators = thumbnailGenerators;
+    this.thumbnailService = thumbnailService;
     this.fileTypeDetector = new FileTypeDetector();
     this.thumbnailEnabled = thumbnailEnabled;
     this.thumbnailWidth = thumbnailWidth;
     this.thumbnailHeight = thumbnailHeight;
+  }
+
+  /**
+   * 썸네일 비활성화 상태로 FileUploadService를 생성합니다.
+   *
+   * @param storage            파일 저장소 포트
+   * @param metadataRepository 메타데이터 저장소 포트
+   */
+  public FileUploadService(
+      FileStoragePort storage,
+      FileMetadataPort metadataRepository
+  ) {
+    this(storage, metadataRepository, null, false, 0, 0);
   }
 
   /**
@@ -133,7 +159,7 @@ public class FileUploadService implements UploadFileUseCase {
     );
 
     // 5. 썸네일 생성 (옵션)
-    if (thumbnailEnabled) {
+    if (thumbnailEnabled && thumbnailService != null) {
       metadata = generateThumbnail(metadata, fileType, storagePath, fileId);
     }
 
@@ -147,7 +173,7 @@ public class FileUploadService implements UploadFileUseCase {
   /**
    * 썸네일을 생성합니다.
    *
-   * <p>적절한 ThumbnailGeneratorPort를 찾아 썸네일을 생성하고 저장합니다.
+   * <p>ThumbnailService를 사용하여 파일 타입에 맞는 썸네일을 생성합니다.
    * 실패해도 예외를 던지지 않고 원본 메타데이터를 반환합니다.</p>
    *
    * @param metadata    파일 메타데이터
@@ -162,24 +188,9 @@ public class FileUploadService implements UploadFileUseCase {
       String storagePath,
       UUID fileId
   ) {
-    ThumbnailGeneratorPort generator = findThumbnailGenerator(fileType);
-    if (generator == null) {
-      log.debug("No thumbnail generator for type: {}", fileType);
-      return metadata;
-    }
-
     try {
-      byte[] thumbnailBytes;
-
-      if (fileType == FileType.VIDEO) {
-        // 동영상은 파일 경로로 생성
-        thumbnailBytes = generator.generateFromPath(storagePath, thumbnailWidth, thumbnailHeight);
-      } else {
-        // 이미지는 스트림으로 생성
-        try (InputStream is = storage.load(storagePath)) {
-          thumbnailBytes = generator.generate(is, thumbnailWidth, thumbnailHeight);
-        }
-      }
+      // ThumbnailService를 통해 썸네일 생성
+      byte[] thumbnailBytes = thumbnailService.generate(fileType, storagePath, thumbnailWidth, thumbnailHeight);
 
       // 썸네일 저장
       String thumbnailFileName = fileId + "_thumb.jpg";
@@ -197,18 +208,5 @@ public class FileUploadService implements UploadFileUseCase {
       // 썸네일 생성 실패해도 업로드는 성공 처리
       return metadata;
     }
-  }
-
-  /**
-   * 파일 타입에 맞는 썸네일 생성기를 찾습니다.
-   *
-   * @param fileType 파일 타입
-   * @return 지원하는 생성기, 없으면 {@code null}
-   */
-  private ThumbnailGeneratorPort findThumbnailGenerator(FileType fileType) {
-    return thumbnailGenerators.stream()
-        .filter(g -> g.supports(fileType))
-        .findFirst()
-        .orElse(null);
   }
 }

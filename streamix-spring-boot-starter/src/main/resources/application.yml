@@ -1,0 +1,13 @@
+# application.yml
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/streamix
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+streamix:
+  storage:
+    base-path: ./uploads
+  thumbnail:
+    ffmpeg-path: /usr/bin/ffmpeg

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{streamix/layout}"
+      th:with="currentPage='dashboard'">
+<head>
+  <title>대시보드</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">대시보드</h1>
+    <span class="text-muted" th:text="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm')}"></span>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-4 mb-4">
+    <!-- Total Files -->
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
+              <i class="bi bi-folder"></i>
+            </div>
+            <div>
+              <div class="text-muted small">전체 파일</div>
+              <div class="h4 mb-0" th:text="${totalFiles}">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
+              <i class="bi bi-broadcast"></i>
+            </div>
+            <div>
+              <div class="text-muted small">활성 세션</div>
+              <div class="h4 mb-0" th:text="${stats.activeSessions}">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today Sessions -->
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
+              <i class="bi bi-calendar-day"></i>
+            </div>
+            <div>
+              <div class="text-muted small">오늘 스트리밍</div>
+              <div class="h4 mb-0" th:text="${stats.todaySessions}">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today Bandwidth -->
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3">
+              <i class="bi bi-cloud-arrow-up"></i>
+            </div>
+            <div>
+              <div class="text-muted small">오늘 전송량</div>
+              <div class="h4 mb-0" th:text="${stats.todayBytesFormatted()}">0 B</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Recent Files -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">최근 업로드</h5>
+          <a th:href="@{${@streamixProperties.dashboard.path} + '/files'}" class="btn btn-sm btn-outline-primary">
+            전체 보기
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+              <tr>
+                <th style="width: 70px"></th>
+                <th>파일명</th>
+                <th>타입</th>
+                <th>크기</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="file : ${recentFiles}">
+                <td>
+                  <img th:if="${file.hasThumbnail()}"
+                       th:src="@{${apiBasePath} + '/files/' + ${file.id()} + '/thumbnail'}"
+                       class="thumbnail-preview"
+                       alt="thumbnail">
+                  <div th:unless="${file.hasThumbnail()}" class="file-icon">
+                    <i th:class="${file.isVideo()} ? 'bi bi-film' : 'bi bi-image'"></i>
+                  </div>
+                </td>
+                <td>
+                  <a th:href="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id()}}"
+                     class="text-decoration-none"
+                     th:text="${#strings.abbreviate(file.originalName(), 30)}">
+                    filename.mp4
+                  </a>
+                </td>
+                <td>
+                                    <span class="badge" th:classappend="${file.isVideo()} ? 'bg-primary' : 'bg-success'"
+                                          th:text="${file.type()}">VIDEO</span>
+                </td>
+                <td class="text-muted" th:text="${#numbers.formatDecimal(file.size() / 1024.0 / 1024.0, 1, 1)} + ' MB'">10 MB</td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(recentFiles)}">
+                <td colspan="4" class="text-center text-muted py-4">
+                  업로드된 파일이 없습니다
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            활성 세션
+            <span class="badge bg-success ms-2" th:text="${#lists.size(activeSessions)}">0</span>
+          </h5>
+          <a th:href="@{${@streamixProperties.dashboard.path} + '/sessions'}" class="btn btn-sm btn-outline-primary">
+            전체 보기
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+              <tr>
+                <th>파일 ID</th>
+                <th>클라이언트 IP</th>
+                <th>상태</th>
+                <th>시작 시간</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="session : ${activeSessions}">
+                <td>
+                  <code th:text="${#strings.abbreviate(session.fileId.toString(), 12)}">uuid</code>
+                </td>
+                <td th:text="${session.clientIp ?: '-'}">192.168.1.1</td>
+                <td>
+                  <span class="badge bg-success" th:text="${session.status}">STREAMING</span>
+                </td>
+                <td class="text-muted" th:text="${#temporals.format(session.startedAt, 'HH:mm:ss')}">10:30:00</td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(activeSessions)}">
+                <td colspan="4" class="text-center text-muted py-4">
+                  진행 중인 스트리밍이 없습니다
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Summary -->
+  <div class="row g-4 mt-2">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">통계 요약</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3">
+              <div class="text-muted small">이번 달 스트리밍</div>
+              <div class="h4" th:text="${stats.monthSessions}">0</div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-muted small">전체 스트리밍</div>
+              <div class="h4" th:text="${stats.totalSessions}">0</div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-muted small">전체 전송량</div>
+              <div class="h4" th:text="${stats.totalBytesFormatted()}">0 B</div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-muted small">평균 스트리밍 시간</div>
+              <div class="h4" th:text="${#numbers.formatDecimal(stats.avgDurationMs / 1000.0, 1, 1)} + 's'">0s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

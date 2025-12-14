@@ -1,0 +1,6 @@
+io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixAutoConfiguration
+io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixJpaConfiguration
+io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixWebConfiguration
+io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixThumbnailConfiguration
+io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixMonitoringConfiguration
+io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixDashboardConfiguration
