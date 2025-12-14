@@ -2,7 +2,6 @@ package io.github.junhyeong9812.streamix.starter.annotation;
 
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixAutoConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixDashboardConfiguration;
-import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixJpaConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixMonitoringConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixRepositoryConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixThumbnailConfiguration;
@@ -68,9 +67,8 @@ import java.lang.annotation.*;
  *
  * <h2>Import되는 Configuration</h2>
  * <ul>
- *   <li>{@link StreamixRepositoryConfiguration} - JPA Entity/Repository 스캔</li>
+ *   <li>{@link StreamixRepositoryConfiguration} - JPA Entity/Repository 스캔 및 FileMetadataPort Bean</li>
  *   <li>{@link StreamixAutoConfiguration} - Core 서비스 Bean 등록</li>
- *   <li>{@link StreamixJpaConfiguration} - JPA 메타데이터 저장소</li>
  *   <li>{@link StreamixWebConfiguration} - REST API 컨트롤러</li>
  *   <li>{@link StreamixThumbnailConfiguration} - FFmpeg 썸네일 어댑터</li>
  *   <li>{@link StreamixMonitoringConfiguration} - 모니터링 서비스</li>
@@ -102,7 +100,6 @@ import java.lang.annotation.*;
 @Import({
     StreamixRepositoryConfiguration.class,
     StreamixAutoConfiguration.class,
-    StreamixJpaConfiguration.class,
     StreamixWebConfiguration.class,
     StreamixThumbnailConfiguration.class,
     StreamixMonitoringConfiguration.class,

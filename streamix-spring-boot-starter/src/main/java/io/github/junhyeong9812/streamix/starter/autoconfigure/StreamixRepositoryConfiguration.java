@@ -7,16 +7,11 @@ import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.Streamin
 import io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-import javax.sql.DataSource;
 
 /**
  * Streamix JPA Repository 및 Entity 스캔 설정 클래스입니다.
@@ -56,12 +51,6 @@ import javax.sql.DataSource;
  *   </tr>
  * </table>
  *
- * <h2>활성화 조건</h2>
- * <ul>
- *   <li>{@code JpaRepository} 클래스가 클래스패스에 존재</li>
- *   <li>{@code DataSource} Bean이 존재</li>
- * </ul>
- *
  * <h2>사용 방법</h2>
  * <p>이 Configuration은 {@code @EnableStreamix} 어노테이션을 통해 자동으로 Import됩니다.
  * 직접 Import할 필요가 없습니다.</p>
@@ -82,7 +71,6 @@ import javax.sql.DataSource;
  * @see StreamingSessionRepository
  */
 @Configuration
-@ConditionalOnClass({JpaRepository.class, DataSource.class})
 @EntityScan(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
 @EnableJpaRepositories(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
 public class StreamixRepositoryConfiguration {
@@ -112,7 +100,6 @@ public class StreamixRepositoryConfiguration {
    */
   @Bean
   @ConditionalOnMissingBean(FileMetadataPort.class)
-  @ConditionalOnBean(DataSource.class)
   public FileMetadataPort fileMetadataPort(FileMetadataJpaRepository repository) {
     log.info("Creating JpaFileMetadataAdapter for metadata persistence");
     return new JpaFileMetadataAdapter(repository);
@@ -129,7 +116,6 @@ public class StreamixRepositoryConfiguration {
    */
   @Bean
   @ConditionalOnMissingBean(StreamingMonitoringService.class)
-  @ConditionalOnBean(DataSource.class)
   public StreamingMonitoringService streamingMonitoringService(StreamingSessionRepository sessionRepository) {
     log.info("Creating StreamingMonitoringService for dashboard statistics");
     return new StreamingMonitoringService(sessionRepository);
