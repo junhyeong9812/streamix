@@ -2,8 +2,9 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'tech.yanand.maven-central-publish'
 }
+
+apply plugin: 'tech.yanand.maven-central-publish'
 
 description = 'Streamix Spring Boot Starter - Auto-configuration for Spring Boot'
 
@@ -18,21 +19,23 @@ dependencies {
     // Spring Boot
     implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}"
 
     // Spring Boot Auto-configuration
     implementation "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
 
-    // Optional: JPA support
-    compileOnly "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    // Thymeleaf Layout Dialect
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.4.0'
 
-    // Optional: Database drivers
+    // Optional: Database drivers (사용자가 선택)
     compileOnly 'org.postgresql:postgresql:42.7.4'
+    compileOnly 'com.mysql:mysql-connector-j:9.1.0'
 
     // Testing
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
-    testImplementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
     testRuntimeOnly 'com.h2database:h2:2.3.232'
 }
 
@@ -83,7 +86,7 @@ signing {
     sign publishing.publications.mavenJava
 }
 
-mavenCentralPublish {
+mavenCentral {
     authToken = System.getenv("MAVEN_CENTRAL_TOKEN")
     publishingType = "AUTOMATIC"
 }

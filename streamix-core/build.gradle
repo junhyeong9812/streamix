@@ -64,7 +64,7 @@ signing {
     sign publishing.publications.mavenJava
 }
 
-mavenCentralPublish {
+mavenCentral {
     authToken = System.getenv("MAVEN_CENTRAL_TOKEN")
     publishingType = "AUTOMATIC"
 }

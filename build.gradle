@@ -29,20 +29,25 @@ subprojects {
 
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
+        // Java 25 compatibility for Mockito/ByteBuddy
+        jvmArgs(
+                '-Dnet.bytebuddy.experimental=true',
+                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+        )
     }
 
     dependencies {
-        // Lombok
-        compileOnly 'org.projectlombok:lombok:1.18.36'
-        annotationProcessor 'org.projectlombok:lombok:1.18.36'
-        testCompileOnly 'org.projectlombok:lombok:1.18.36'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
-
         // Testing
         testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         testImplementation 'org.assertj:assertj-core:3.26.3'
         testImplementation 'org.mockito:mockito-core:5.14.2'
         testImplementation 'org.mockito:mockito-junit-jupiter:5.14.2'
+        // ByteBuddy 1.17+ for Java 25 support
+        testImplementation 'net.bytebuddy:byte-buddy:1.17.5'
+        testImplementation 'net.bytebuddy:byte-buddy-agent:1.17.5'
     }
 }
 
