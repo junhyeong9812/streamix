@@ -20,7 +20,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -183,9 +185,7 @@ class FileMetadataServiceTest {
 
       given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
       // storage.delete() throws exception
-      given(storage).willAnswer(inv -> {
-        throw new RuntimeException("Storage error");
-      });
+      doThrow(new RuntimeException("Storage error")).when(storage).delete(anyString());
 
       // when - 예외가 발생하지 않음
       metadataService.delete(fileId);
