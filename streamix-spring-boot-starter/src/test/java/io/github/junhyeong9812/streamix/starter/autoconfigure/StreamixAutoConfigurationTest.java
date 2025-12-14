@@ -39,10 +39,10 @@ class StreamixAutoConfigurationTest {
   @DisplayName("커스텀 저장 경로가 Properties에 반영된다")
   void customStoragePath_ReflectedInProperties() {
     contextRunner
-        .withPropertyValues("streamix.storage.base-path=/custom/path")
+        .withPropertyValues("streamix.storage.base-path=./test-data")  // 상대 경로로 변경
         .run(context -> {
           StreamixProperties props = context.getBean(StreamixProperties.class);
-          assertThat(props.storage().basePath()).isEqualTo("/custom/path");
+          assertThat(props.storage().basePath()).isEqualTo("./test-data");
         });
   }
 
