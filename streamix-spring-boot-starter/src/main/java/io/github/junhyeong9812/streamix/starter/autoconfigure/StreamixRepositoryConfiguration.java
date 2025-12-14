@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
@@ -87,6 +88,27 @@ public class StreamixRepositoryConfiguration {
     log.info("Streamix Repository Configuration initialized");
     log.info("  Entity scan: io.github.junhyeong9812.streamix.starter.adapter.out.persistence");
     log.info("  Repository scan: io.github.junhyeong9812.streamix.starter.adapter.out.persistence");
+  }
+
+  /**
+   * Streamix 설정 Properties Bean을 명시적 이름으로 등록합니다.
+   *
+   * <p>Thymeleaf 템플릿에서 {@code @streamixProperties}로 접근할 수 있도록
+   * 'streamixProperties'라는 명시적인 Bean 이름으로 alias를 등록합니다.</p>
+   *
+   * <p>{@code @EnableConfigurationProperties}로 등록된 Bean은 내부 명명 규칙을 따르므로,
+   * Thymeleaf에서 접근 가능하도록 동일한 Bean을 'streamixProperties' 이름으로 다시 등록합니다.</p>
+   *
+   * <p>{@code @Primary}를 사용하여 여러 Bean이 있을 때 이 Bean이 우선 주입되도록 합니다.</p>
+   *
+   * @param properties @EnableConfigurationProperties로 등록된 Properties
+   * @return 동일한 Properties 인스턴스
+   */
+  @Bean("streamixProperties")
+  @Primary
+  public StreamixProperties streamixPropertiesAlias(StreamixProperties properties) {
+    log.info("Registering StreamixProperties bean alias for Thymeleaf access");
+    return properties;
   }
 
   /**
