@@ -174,6 +174,7 @@ public class StreamixAutoConfiguration {
   @Bean
   @ConditionalOnMissingBean(ThumbnailService.class)
   public ThumbnailService thumbnailService(
+      @Qualifier("imageThumbnailAdapter")
       ThumbnailGeneratorPort imageThumbnailAdapter,
       @Autowired(required = false)
       @Qualifier("ffmpegThumbnailAdapter")
