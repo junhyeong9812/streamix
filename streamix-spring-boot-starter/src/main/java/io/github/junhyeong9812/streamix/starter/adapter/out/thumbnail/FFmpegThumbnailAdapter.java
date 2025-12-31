@@ -94,6 +94,11 @@ public class FFmpegThumbnailAdapter implements ThumbnailGeneratorPort {
   private static final int PROCESS_TIMEOUT_SECONDS = 30;
 
   /**
+   * 생성기 우선순위 (VIDEO 전용, ImageThumbnailAdapter와 동일).
+   */
+  private static final int DEFAULT_ORDER = 500;
+
+  /**
    * FFmpeg 실행 파일 경로.
    */
   private final String ffmpegPath;
@@ -128,6 +133,28 @@ public class FFmpegThumbnailAdapter implements ThumbnailGeneratorPort {
   @Override
   public boolean supports(FileType fileType) {
     return fileType == FileType.VIDEO;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @return 500 (ImageThumbnailAdapter와 동일한 우선순위)
+   * @since 1.0.7
+   */
+  @Override
+  public int getOrder() {
+    return DEFAULT_ORDER;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @return "FFmpegThumbnailAdapter"
+   * @since 1.0.7
+   */
+  @Override
+  public String getName() {
+    return "FFmpegThumbnailAdapter";
   }
 
   /**
