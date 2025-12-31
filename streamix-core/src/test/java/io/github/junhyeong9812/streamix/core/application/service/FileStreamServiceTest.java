@@ -158,57 +158,59 @@ class FileStreamServiceTest {
       assertThatThrownBy(() -> streamService.stream(command))
           .isInstanceOf(FileNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("잘못된 Range 형식은 예외가 발생한다")
+    void throwsForInvalidRange() {
+      // given
+      UUID fileId = UUID.randomUUID();
+      FileMetadata metadata = createMetadata(fileId, 100L);
+
+      given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
+
+      // start > end인 경우
+      StreamFileUseCase.StreamCommand command =
+          StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=500-100");
+
+      // when & then
+      assertThatThrownBy(() -> streamService.stream(command))
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessageContaining("Invalid range");
+    }
   }
 
   @Nested
-  @DisplayName("getThumbnail 테스트")
-  class GetThumbnailTest {
+  @DisplayName("StreamCommand 테스트")
+  class StreamCommandTest {
 
     @Test
-    @DisplayName("썸네일을 조회한다")
-    void getThumbnail() {
-      // given
-      UUID fileId = UUID.randomUUID();
-      FileMetadata metadata = createMetadataWithThumbnail(fileId);
-      InputStream mockStream = new ByteArrayInputStream(new byte[100]);
-
-      given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
-      given(storage.load(metadata.thumbnailPath())).willReturn(mockStream);
-      given(storage.getSize(metadata.thumbnailPath())).willReturn(100L);
-
-      // when
-      StreamableFile result = streamService.getThumbnail(fileId);
-
-      // then
-      assertThat(result).isNotNull();
-      assertThat(result.getContentType()).isEqualTo("image/jpeg");
-      assertThat(result.contentLength()).isEqualTo(100L);
+    @DisplayName("fileId가 null이면 예외가 발생한다")
+    void throwsWhenFileIdIsNull() {
+      assertThatThrownBy(() -> StreamFileUseCase.StreamCommand.of(null))
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessageContaining("fileId");
     }
 
     @Test
-    @DisplayName("썸네일이 없으면 예외가 발생한다")
-    void throwsWhenThumbnailNotFound() {
-      // given
+    @DisplayName("Range 없이 생성한다")
+    void createWithoutRange() {
       UUID fileId = UUID.randomUUID();
-      FileMetadata metadata = createMetadata(fileId, 1024L); // 썸네일 없음
+      StreamFileUseCase.StreamCommand command = StreamFileUseCase.StreamCommand.of(fileId);
 
-      given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
-
-      // when & then
-      assertThatThrownBy(() -> streamService.getThumbnail(fileId))
-          .isInstanceOf(FileNotFoundException.class);
+      assertThat(command.fileId()).isEqualTo(fileId);
+      assertThat(command.hasRange()).isFalse();
     }
 
     @Test
-    @DisplayName("존재하지 않는 파일의 썸네일 조회는 예외가 발생한다")
-    void throwsWhenFileNotFound() {
-      // given
+    @DisplayName("Range와 함께 생성한다")
+    void createWithRange() {
       UUID fileId = UUID.randomUUID();
-      given(metadataRepository.findById(fileId)).willReturn(Optional.empty());
+      StreamFileUseCase.StreamCommand command =
+          StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=0-100");
 
-      // when & then
-      assertThatThrownBy(() -> streamService.getThumbnail(fileId))
-          .isInstanceOf(FileNotFoundException.class);
+      assertThat(command.fileId()).isEqualTo(fileId);
+      assertThat(command.hasRange()).isTrue();
+      assertThat(command.rangeHeader()).isEqualTo("bytes=0-100");
     }
   }
 
@@ -221,20 +223,6 @@ class FileStreamServiceTest {
         size,
         "/storage/test.mp4",
         null,
-        LocalDateTime.now(),
-        LocalDateTime.now()
-    );
-  }
-
-  private FileMetadata createMetadataWithThumbnail(UUID id) {
-    return new FileMetadata(
-        id,
-        "test.mp4",
-        FileType.VIDEO,
-        "video/mp4",
-        1024L,
-        "/storage/test.mp4",
-        "/storage/test_thumb.jpg",
         LocalDateTime.now(),
         LocalDateTime.now()
     );
