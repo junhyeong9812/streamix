@@ -1,6 +1,7 @@
 package io.github.junhyeong9812.streamix.starter.adapter.in.web;
 
 import io.github.junhyeong9812.streamix.core.domain.exception.FileNotFoundException;
+import io.github.junhyeong9812.streamix.core.domain.exception.FileSizeExceededException;
 import io.github.junhyeong9812.streamix.core.domain.exception.InvalidFileTypeException;
 import io.github.junhyeong9812.streamix.core.domain.exception.StorageException;
 import io.github.junhyeong9812.streamix.core.domain.exception.ThumbnailGenerationException;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
  *   <tr><th>예외</th><th>HTTP 상태</th><th>에러 코드</th></tr>
  *   <tr><td>{@link FileNotFoundException}</td><td>404</td><td>FILE_NOT_FOUND</td></tr>
  *   <tr><td>{@link InvalidFileTypeException}</td><td>400</td><td>INVALID_FILE_TYPE</td></tr>
+ *   <tr><td>{@link FileSizeExceededException}</td><td>413</td><td>FILE_SIZE_EXCEEDED</td></tr>
  *   <tr><td>{@link StorageException}</td><td>500</td><td>STORAGE_ERROR</td></tr>
  *   <tr><td>{@link ThumbnailGenerationException}</td><td>500</td><td>THUMBNAIL_ERROR</td></tr>
  *   <tr><td>{@link MaxUploadSizeExceededException}</td><td>413</td><td>FILE_TOO_LARGE</td></tr>
@@ -117,6 +119,36 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * FileSizeExceededException 처리 (413 Payload Too Large).
+   *
+   * <p>업로드 파일 크기가 Streamix 설정의 최대 크기를 초과한 경우입니다.
+   * {@code streamix.storage.max-file-size} 설정과 관련됩니다.</p>
+   *
+   * @param ex      발생한 예외
+   * @param request HTTP 요청
+   * @return 413 에러 응답
+   * @since 1.0.7
+   */
+  @ExceptionHandler(FileSizeExceededException.class)
+  public ResponseEntity<ErrorResponse> handleFileSizeExceeded(
+      FileSizeExceededException ex,
+      HttpServletRequest request
+  ) {
+    log.warn("File size exceeded: {} (actual={}, max={})",
+        ex.getFileName(), formatSize(ex.getActualSize()), formatSize(ex.getMaxSize()));
+
+    ErrorResponse response = ErrorResponse.of(
+        413,
+        "Payload Too Large",
+        "FILE_SIZE_EXCEEDED",
+        ex.getMessage(),
+        request.getRequestURI()
+    );
+
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
+  }
+
+  /**
    * StorageException 처리 (500 Internal Server Error).
    *
    * <p>파일 저장, 로드, 삭제 중 오류가 발생한 경우입니다.</p>
@@ -170,7 +202,7 @@ public class GlobalExceptionHandler {
   /**
    * MaxUploadSizeExceededException 처리 (413 Payload Too Large).
    *
-   * <p>업로드 파일 크기가 설정된 최대 크기를 초과한 경우입니다.
+   * <p>업로드 파일 크기가 Spring의 최대 크기를 초과한 경우입니다.
    * {@code spring.servlet.multipart.max-file-size} 설정과 관련됩니다.</p>
    *
    * @param ex      발생한 예외
@@ -244,5 +276,22 @@ public class GlobalExceptionHandler {
     );
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+  }
+
+  // ==================== 유틸리티 ====================
+
+  /**
+   * 바이트 크기를 읽기 좋은 형식으로 포맷합니다.
+   */
+  private static String formatSize(long bytes) {
+    if (bytes < 1024) {
+      return bytes + " B";
+    } else if (bytes < 1024 * 1024) {
+      return String.format("%.1f KB", bytes / 1024.0);
+    } else if (bytes < 1024L * 1024 * 1024) {
+      return String.format("%.1f MB", bytes / (1024.0 * 1024));
+    } else {
+      return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
+    }
   }
 }
