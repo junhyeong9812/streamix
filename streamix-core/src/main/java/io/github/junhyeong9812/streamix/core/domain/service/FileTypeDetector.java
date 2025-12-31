@@ -23,12 +23,12 @@ import java.util.Map;
  * <table border="1">
  *   <caption>지원하는 파일 타입 및 MIME 타입</caption>
  *   <tr><th>타입</th><th>확장자</th><th>Content-Type</th></tr>
- *   <tr><td>IMAGE</td><td>jpg, jpeg</td><td>image/jpeg</td></tr>
- *   <tr><td>IMAGE</td><td>png</td><td>image/png</td></tr>
- *   <tr><td>IMAGE</td><td>gif</td><td>image/gif</td></tr>
- *   <tr><td>VIDEO</td><td>mp4</td><td>video/mp4</td></tr>
- *   <tr><td>VIDEO</td><td>avi</td><td>video/x-msvideo</td></tr>
- *   <tr><td>VIDEO</td><td>webm</td><td>video/webm</td></tr>
+ *   <tr><td>IMAGE</td><td>jpg, jpeg, png, gif, webp, bmp, svg</td><td>image/*</td></tr>
+ *   <tr><td>VIDEO</td><td>mp4, avi, mov, mkv, webm</td><td>video/*</td></tr>
+ *   <tr><td>AUDIO</td><td>mp3, wav, flac, aac, ogg</td><td>audio/*</td></tr>
+ *   <tr><td>DOCUMENT</td><td>pdf, doc, docx, xls, xlsx, txt</td><td>application/pdf, text/*</td></tr>
+ *   <tr><td>ARCHIVE</td><td>zip, rar, 7z, tar, gz</td><td>application/zip</td></tr>
+ *   <tr><td>OTHER</td><td>기타 모든 파일</td><td>application/octet-stream</td></tr>
  * </table>
  *
  * <h2>사용 예시</h2>
@@ -39,6 +39,10 @@ import java.util.Map;
  * FileType type = detector.detect("video.mp4");
  * // type == FileType.VIDEO
  *
+ * // 알 수 없는 확장자도 OTHER로 반환
+ * FileType type = detector.detect("data.xyz");
+ * // type == FileType.OTHER
+ *
  * // 확장자 추출
  * String ext = detector.extractExtension("photo.JPG");
  * // ext == "jpg"
@@ -46,10 +50,6 @@ import java.util.Map;
  * // Content-Type 조회
  * String contentType = detector.getContentType("png");
  * // contentType == "image/png"
- *
- * // 지원 여부 확인
- * boolean supported = detector.isSupported("document.pdf");
- * // supported == false
  * }</pre>
  *
  * @author junhyeong9812
@@ -77,6 +77,9 @@ public class FileTypeDetector {
       Map.entry("webp", "image/webp"),
       Map.entry("bmp", "image/bmp"),
       Map.entry("svg", "image/svg+xml"),
+      Map.entry("ico", "image/x-icon"),
+      Map.entry("tiff", "image/tiff"),
+      Map.entry("tif", "image/tiff"),
       // Videos
       Map.entry("mp4", "video/mp4"),
       Map.entry("avi", "video/x-msvideo"),
@@ -84,7 +87,46 @@ public class FileTypeDetector {
       Map.entry("wmv", "video/x-ms-wmv"),
       Map.entry("mkv", "video/x-matroska"),
       Map.entry("webm", "video/webm"),
-      Map.entry("flv", "video/x-flv")
+      Map.entry("flv", "video/x-flv"),
+      Map.entry("m4v", "video/x-m4v"),
+      Map.entry("mpeg", "video/mpeg"),
+      Map.entry("mpg", "video/mpeg"),
+      Map.entry("3gp", "video/3gpp"),
+      // Audios (1.0.7+)
+      Map.entry("mp3", "audio/mpeg"),
+      Map.entry("wav", "audio/wav"),
+      Map.entry("flac", "audio/flac"),
+      Map.entry("aac", "audio/aac"),
+      Map.entry("ogg", "audio/ogg"),
+      Map.entry("m4a", "audio/mp4"),
+      Map.entry("wma", "audio/x-ms-wma"),
+      Map.entry("opus", "audio/opus"),
+      Map.entry("aiff", "audio/aiff"),
+      // Documents (1.0.7+)
+      Map.entry("pdf", "application/pdf"),
+      Map.entry("doc", "application/msword"),
+      Map.entry("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+      Map.entry("xls", "application/vnd.ms-excel"),
+      Map.entry("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+      Map.entry("ppt", "application/vnd.ms-powerpoint"),
+      Map.entry("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+      Map.entry("txt", "text/plain"),
+      Map.entry("rtf", "application/rtf"),
+      Map.entry("csv", "text/csv"),
+      Map.entry("md", "text/markdown"),
+      Map.entry("json", "application/json"),
+      Map.entry("xml", "application/xml"),
+      Map.entry("html", "text/html"),
+      Map.entry("htm", "text/html"),
+      // Archives (1.0.7+)
+      Map.entry("zip", "application/zip"),
+      Map.entry("rar", "application/x-rar-compressed"),
+      Map.entry("7z", "application/x-7z-compressed"),
+      Map.entry("tar", "application/x-tar"),
+      Map.entry("gz", "application/gzip"),
+      Map.entry("bz2", "application/x-bzip2"),
+      Map.entry("xz", "application/x-xz"),
+      Map.entry("tgz", "application/gzip")
   );
 
   /**
@@ -111,53 +153,38 @@ public class FileTypeDetector {
   /**
    * 파일명으로 FileType을 감지합니다.
    *
-   * <p>파일명에서 확장자를 추출하여 타입을 결정합니다.</p>
+   * <p>파일명에서 확장자를 추출하여 타입을 결정합니다.
+   * 알 수 없는 확장자는 {@link FileType#OTHER}를 반환합니다.</p>
    *
    * @param fileName 파일명
-   * @return 감지된 FileType
-   * @throws InvalidFileTypeException 지원하지 않는 확장자인 경우
+   * @return 감지된 FileType (알 수 없으면 OTHER)
    */
   public FileType detect(String fileName) {
     String extension = extractExtension(fileName);
-    FileType type = FileType.fromExtension(extension);
-
-    if (type == null) {
-      throw new InvalidFileTypeException(extension);
-    }
-
-    return type;
+    return FileType.fromExtension(extension);
   }
 
   /**
    * 파일명과 Content-Type으로 FileType을 감지합니다.
    *
-   * <p>확장자를 우선으로 판단하고, 확장자로 판단할 수 없으면
-   * Content-Type으로 판단합니다.</p>
+   * <p>확장자를 우선으로 판단하고, 확장자로 OTHER가 반환되면
+   * Content-Type으로 재시도합니다.</p>
    *
    * @param fileName    파일명
    * @param contentType HTTP Content-Type 헤더 값
-   * @return 감지된 FileType
-   * @throws InvalidFileTypeException 둘 다로 타입을 판단할 수 없는 경우
+   * @return 감지된 FileType (알 수 없으면 OTHER)
    */
   public FileType detect(String fileName, String contentType) {
-    String extension = extractExtension(fileName);
-
     // 우선 확장자로 판단
-    FileType typeByExt = FileType.fromExtension(extension);
+    FileType typeByExt = FileType.fromExtension(extractExtension(fileName));
 
-    // Content-Type으로 판단
-    FileType typeByContent = FileType.fromContentType(contentType);
-
-    // 둘 다 있으면 확장자 우선
-    if (typeByExt != null) {
+    // OTHER가 아니면 확장자 결과 사용
+    if (typeByExt != FileType.OTHER) {
       return typeByExt;
     }
 
-    if (typeByContent != null) {
-      return typeByContent;
-    }
-
-    throw new InvalidFileTypeException(extension, contentType);
+    // Content-Type으로 재시도
+    return FileType.fromContentType(contentType);
   }
 
   /**
@@ -167,6 +194,9 @@ public class FileTypeDetector {
    * @return MIME Content-Type, 알 수 없는 확장자면 "application/octet-stream"
    */
   public String getContentType(String extension) {
+    if (extension == null) {
+      return "application/octet-stream";
+    }
     return EXTENSION_TO_CONTENT_TYPE.getOrDefault(
         extension.toLowerCase(),
         "application/octet-stream"
@@ -176,8 +206,10 @@ public class FileTypeDetector {
   /**
    * 파일명이 지원되는 형식인지 확인합니다.
    *
+   * <p>OTHER 타입은 지원되지 않는 것으로 간주합니다.</p>
+   *
    * @param fileName 파일명
-   * @return 지원 여부
+   * @return 지원 여부 (OTHER면 false)
    */
   public boolean isSupported(String fileName) {
     String extension = extractExtension(fileName);
@@ -187,18 +219,28 @@ public class FileTypeDetector {
   /**
    * 파일명과 Content-Type 조합이 지원되는지 확인합니다.
    *
-   * <p>예외를 발생시키지 않고 boolean으로 결과를 반환합니다.</p>
+   * <p>OTHER 타입은 지원되지 않는 것으로 간주합니다.</p>
    *
    * @param fileName    파일명
    * @param contentType Content-Type
-   * @return 지원 여부
+   * @return 지원 여부 (OTHER면 false)
    */
   public boolean isSupported(String fileName, String contentType) {
-    try {
-      detect(fileName, contentType);
-      return true;
-    } catch (InvalidFileTypeException e) {
-      return false;
-    }
+    FileType type = detect(fileName, contentType);
+    return type != FileType.OTHER;
+  }
+
+  /**
+   * 모든 파일을 허용할 때 FileType을 감지합니다.
+   *
+   * <p>{@link #detect(String)}과 동일하지만, 의도를 명확히 합니다.
+   * OTHER 타입도 정상적으로 반환됩니다.</p>
+   *
+   * @param fileName 파일명
+   * @return 감지된 FileType
+   * @since 1.0.7
+   */
+  public FileType detectAllowingAll(String fileName) {
+    return detect(fileName);
   }
 }
