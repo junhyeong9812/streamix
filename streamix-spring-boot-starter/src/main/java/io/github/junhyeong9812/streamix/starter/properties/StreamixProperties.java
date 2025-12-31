@@ -2,6 +2,8 @@ package io.github.junhyeong9812.streamix.starter.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Set;
+
 /**
  * Streamix 설정 프로퍼티를 담는 불변 레코드입니다.
  *
@@ -14,7 +16,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * streamix
  * ├── storage              # 파일 저장소 설정
  * │   ├── base-path        # 저장 경로 (기본: ./streamix-data)
- * │   └── max-file-size    # 최대 파일 크기 (기본: 100MB)
+ * │   ├── max-file-size    # 최대 파일 크기 (기본: 100MB)
+ * │   └── allowed-types    # 허용 파일 타입 (기본: 전체 허용)
  * ├── thumbnail            # 썸네일 설정
  * │   ├── enabled          # 활성화 여부 (기본: true)
  * │   ├── width            # 너비 (기본: 320)
@@ -34,6 +37,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *   storage:
  *     base-path: /var/lib/streamix/uploads
  *     max-file-size: 524288000  # 500MB
+ *     allowed-types: IMAGE,VIDEO,DOCUMENT  # 빈 값 = 전체 허용
  *   thumbnail:
  *     enabled: true
  *     width: 320
@@ -50,6 +54,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <pre>{@code
  * streamix.storage.base-path=/var/lib/streamix/uploads
  * streamix.storage.max-file-size=524288000
+ * streamix.storage.allowed-types=IMAGE,VIDEO
  * streamix.thumbnail.enabled=true
  * streamix.thumbnail.width=320
  * streamix.thumbnail.height=180
@@ -62,6 +67,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <pre>{@code
  * STREAMIX_STORAGE_BASE_PATH=/data/uploads
  * STREAMIX_STORAGE_MAX_FILE_SIZE=524288000
+ * STREAMIX_STORAGE_ALLOWED_TYPES=IMAGE,VIDEO
  * STREAMIX_THUMBNAIL_ENABLED=true
  * }</pre>
  *
@@ -84,7 +90,7 @@ public record StreamixProperties(
    * Compact Constructor - null 값에 기본값을 적용합니다.
    */
   public StreamixProperties {
-    storage = storage != null ? storage : new Storage(null, 0);
+    storage = storage != null ? storage : new Storage(null, 0, null);
     thumbnail = thumbnail != null ? thumbnail : new Thumbnail(true, 0, 0, null);
     api = api != null ? api : new Api(true, null);
     dashboard = dashboard != null ? dashboard : new Dashboard(true, null);
@@ -101,14 +107,29 @@ public record StreamixProperties(
    *   <tr><th>속성</th><th>기본값</th><th>설명</th></tr>
    *   <tr><td>base-path</td><td>./streamix-data</td><td>파일 저장 기본 경로</td></tr>
    *   <tr><td>max-file-size</td><td>104857600 (100MB)</td><td>최대 업로드 파일 크기 (바이트)</td></tr>
+   *   <tr><td>allowed-types</td><td>(빈 값 = 전체 허용)</td><td>허용 파일 타입 (콤마 구분)</td></tr>
    * </table>
    *
-   * @param basePath    파일 저장 기본 경로 (상대/절대 경로 모두 가능)
-   * @param maxFileSize 최대 업로드 파일 크기 (바이트 단위)
+   * <h2>허용 파일 타입</h2>
+   * <p>다음 값들을 콤마로 구분하여 지정할 수 있습니다:</p>
+   * <ul>
+   *   <li>IMAGE - 이미지 파일 (jpg, png, gif, webp 등)</li>
+   *   <li>VIDEO - 비디오 파일 (mp4, webm, avi 등)</li>
+   *   <li>AUDIO - 오디오 파일 (mp3, wav, flac 등)</li>
+   *   <li>DOCUMENT - 문서 파일 (pdf, doc, xlsx 등)</li>
+   *   <li>ARCHIVE - 압축 파일 (zip, tar, gz 등)</li>
+   *   <li>OTHER - 기타 파일</li>
+   * </ul>
+   *
+   * @param basePath     파일 저장 기본 경로 (상대/절대 경로 모두 가능)
+   * @param maxFileSize  최대 업로드 파일 크기 (바이트 단위)
+   * @param allowedTypes 허용 파일 타입 (콤마 구분, 빈 값이면 전체 허용)
+   * @since 1.0.7 allowedTypes 추가
    */
   public record Storage(
       String basePath,
-      long maxFileSize
+      long maxFileSize,
+      Set<String> allowedTypes
   ) {
     /**
      * Compact Constructor - 기본값을 적용합니다.
@@ -116,6 +137,7 @@ public record StreamixProperties(
     public Storage {
       basePath = basePath != null && !basePath.isBlank() ? basePath : "./streamix-data";
       maxFileSize = maxFileSize > 0 ? maxFileSize : 104857600L; // 100MB
+      allowedTypes = allowedTypes != null ? Set.copyOf(allowedTypes) : Set.of();
     }
 
     /**
@@ -132,6 +154,16 @@ public record StreamixProperties(
         return basePath;
       }
       return System.getProperty("user.dir") + "/" + basePath;
+    }
+
+    /**
+     * 모든 파일 타입이 허용되는지 확인합니다.
+     *
+     * @return 빈 Set이면 true (전체 허용)
+     * @since 1.0.7
+     */
+    public boolean isAllTypesAllowed() {
+      return allowedTypes.isEmpty();
     }
   }
 
