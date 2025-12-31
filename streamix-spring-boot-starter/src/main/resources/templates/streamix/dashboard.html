@@ -39,8 +39,8 @@
               <div class="stat-value" th:text="${stats?.activeSessions} ?: 0">0</div>
               <div class="stat-label">활성 세션</div>
               <span class="stat-change positive" th:if="${stats?.activeSessions > 0}">
-                                <i class="bi bi-broadcast"></i> 스트리밍 중
-                            </span>
+                <i class="bi bi-broadcast"></i> 스트리밍 중
+              </span>
             </div>
             <div class="stat-icon bg-success-soft">
               <i class="bi bi-broadcast"></i>
@@ -103,7 +103,7 @@
             <div class="empty-state-text">파일 관리에서 새 파일을 업로드하세요</div>
           </div>
 
-          <div th:unless="${#lists.isEmpty(recentFiles)}" class="table-responsive">
+          <div th:if="${!#lists.isEmpty(recentFiles)}" class="table-responsive">
             <table class="table table-hover mb-0">
               <thead>
               <tr>
@@ -121,27 +121,28 @@
                   <img th:if="${file.thumbnailPath != null}"
                        th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'}"
                        class="thumbnail-preview" alt="썸네일">
-                  <div th:unless="${file.thumbnailPath != null}"
-                       class="file-icon" th:classappend="${file.type.name().toLowerCase()}">
-                    <i th:class="${file.type.name() == 'VIDEO'} ? 'bi bi-camera-video' : 'bi bi-image'"></i>
+                  <div th:if="${file.thumbnailPath == null}"
+                       class="file-icon"
+                       th:classappend="${file.type.name().toLowerCase()}">
+                    <i th:class="${file.type.name() == 'VIDEO' ? 'bi bi-camera-video' : (file.type.name() == 'IMAGE' ? 'bi bi-image' : (file.type.name() == 'AUDIO' ? 'bi bi-music-note-beamed' : (file.type.name() == 'DOCUMENT' ? 'bi bi-file-earmark-text' : (file.type.name() == 'ARCHIVE' ? 'bi bi-file-earmark-zip' : 'bi bi-file-earmark'))))}"></i>
                   </div>
                 </td>
                 <td>
-                                        <span class="fw-medium text-truncate d-inline-block" style="max-width: 200px;"
-                                              th:text="${file.originalName}" th:title="${file.originalName}"></span>
+                  <span class="fw-medium text-truncate d-inline-block" style="max-width: 200px;"
+                        th:text="${file.originalName}" th:title="${file.originalName}"></span>
                 </td>
                 <td>
-                                        <span class="badge"
-                                              th:classappend="${file.type.name() == 'VIDEO'} ? 'bg-info' : 'bg-success'"
-                                              th:text="${file.type}"></span>
+                  <span class="badge"
+                        th:classappend="${file.type.name() == 'VIDEO' ? 'bg-video' : (file.type.name() == 'IMAGE' ? 'bg-image' : (file.type.name() == 'AUDIO' ? 'bg-audio' : (file.type.name() == 'DOCUMENT' ? 'bg-document' : (file.type.name() == 'ARCHIVE' ? 'bg-archive' : 'bg-other'))))}"
+                        th:text="${file.type}"></span>
                 </td>
                 <td>
-                                        <span data-format="filesize" th:data-value="${file.size}"
-                                              th:text="${#numbers.formatDecimal(file.size / 1024 / 1024, 1, 1)} + ' MB'"></span>
+                  <span data-format="filesize" th:data-value="${file.size}"
+                        th:text="${#numbers.formatDecimal(file.size / 1024 / 1024, 1, 1)} + ' MB'"></span>
                 </td>
                 <td>
-                                        <span class="text-muted small"
-                                              th:text="${#temporals.format(file.createdAt, 'MM-dd HH:mm')}"></span>
+                  <span class="text-muted small"
+                        th:text="${#temporals.format(file.createdAt, 'MM-dd HH:mm')}"></span>
                 </td>
                 <td>
                   <a th:href="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id}}"
@@ -190,8 +191,8 @@
         <div class="card-header d-flex align-items-center justify-content-between">
           <span><i class="bi bi-broadcast me-2"></i>활성 세션</span>
           <span class="badge bg-success badge-status" th:if="${!#lists.isEmpty(activeSessions)}">
-                        <span th:text="${#lists.size(activeSessions)}"></span> 활성
-                    </span>
+            <span th:text="${#lists.size(activeSessions)}"></span> 활성
+          </span>
         </div>
         <div class="card-body">
           <div th:if="${#lists.isEmpty(activeSessions)}" class="text-center text-muted py-4">
@@ -199,10 +200,10 @@
             <small>현재 활성 스트리밍 없음</small>
           </div>
 
-          <div th:unless="${#lists.isEmpty(activeSessions)}">
+          <div th:if="${!#lists.isEmpty(activeSessions)}">
             <div th:each="session, stat : ${activeSessions}"
                  class="d-flex align-items-center gap-3 py-2"
-                 th:classappend="${!stat.last} ? 'border-bottom' : ''">
+                 th:classappend="${!stat.last ? 'border-bottom' : ''}">
               <div class="session-status-dot active"></div>
               <div class="flex-grow-1">
                 <div class="small fw-medium text-truncate" style="max-width: 150px;"

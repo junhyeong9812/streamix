@@ -1,6 +1,7 @@
 /**
  * Streamix Dashboard Styles
  * 미디어 스트리밍 관리 대시보드 스타일시트
+ * @version 2.0.0
  */
 
 /* ===== CSS Variables ===== */
@@ -19,6 +20,14 @@
   --streamix-border: #e2e8f0;
   --sidebar-width: 260px;
   --header-height: 0px;
+
+  /* FileType Colors */
+  --color-image: #10b981;
+  --color-video: #3b82f6;
+  --color-audio: #8b5cf6;
+  --color-document: #f59e0b;
+  --color-archive: #6366f1;
+  --color-other: #64748b;
 }
 
 /* ===== Base Styles ===== */
@@ -285,14 +294,35 @@ body {
   font-size: 1.25rem;
 }
 
-.file-icon.video {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: var(--streamix-info);
-}
-
+/* FileType별 아이콘 스타일 */
 .file-icon.image {
   background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: var(--streamix-success);
+  color: var(--color-image);
+}
+
+.file-icon.video {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: var(--color-video);
+}
+
+.file-icon.audio {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  color: var(--color-audio);
+}
+
+.file-icon.document {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: var(--color-document);
+}
+
+.file-icon.archive {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  color: var(--color-archive);
+}
+
+.file-icon.other {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: var(--color-other);
 }
 
 /* ===== Badges ===== */
@@ -340,6 +370,37 @@ body {
 .badge.bg-secondary {
   background: rgba(100, 116, 139, 0.15) !important;
   color: var(--streamix-text-muted);
+}
+
+/* FileType별 Badge 스타일 */
+.badge.bg-image {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: var(--color-image);
+}
+
+.badge.bg-video {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: var(--color-video);
+}
+
+.badge.bg-audio {
+  background: rgba(139, 92, 246, 0.15) !important;
+  color: var(--color-audio);
+}
+
+.badge.bg-document {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: var(--color-document);
+}
+
+.badge.bg-archive {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: var(--color-archive);
+}
+
+.badge.bg-other {
+  background: rgba(100, 116, 139, 0.15) !important;
+  color: var(--color-other);
 }
 
 /* ===== Buttons ===== */
@@ -402,6 +463,26 @@ body {
   display: block;
 }
 
+/* ===== Audio Player ===== */
+.audio-player-wrapper {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.audio-player {
+  width: 100%;
+  max-width: 500px;
+}
+
+.audio-icon {
+  font-size: 4rem;
+  color: var(--color-audio);
+  margin-bottom: 1rem;
+}
+
+/* ===== Image Preview ===== */
 .image-preview-wrapper {
   background: var(--streamix-bg);
   border-radius: 1rem;
@@ -414,6 +495,48 @@ body {
   max-height: 400px;
   border-radius: 0.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Document Preview ===== */
+.document-preview-wrapper {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 1rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.document-icon {
+  font-size: 4rem;
+  color: var(--color-document);
+  margin-bottom: 1rem;
+}
+
+/* ===== Archive Preview ===== */
+.archive-preview-wrapper {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-radius: 1rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.archive-icon {
+  font-size: 4rem;
+  color: var(--color-archive);
+  margin-bottom: 1rem;
+}
+
+/* ===== Other File Preview ===== */
+.other-preview-wrapper {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 1rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.other-icon {
+  font-size: 4rem;
+  color: var(--color-other);
+  margin-bottom: 1rem;
 }
 
 /* ===== File Info ===== */
@@ -617,6 +740,34 @@ body {
   }
 }
 
+/* ===== Upload Area ===== */
+.upload-area {
+  border: 2px dashed var(--streamix-border);
+  border-radius: 1rem;
+  padding: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--streamix-card-bg);
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--streamix-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-area.uploading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: var(--streamix-primary);
+  margin-bottom: 1rem;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 992px) {
   .sidebar {
@@ -664,4 +815,9 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-2px);
+}
+
+/* Progress bar with Streamix color */
+.progress-bar.bg-streamix {
+  background-color: var(--streamix-primary);
 }

@@ -25,9 +25,9 @@
     <div>
       <h1 class="page-title" th:text="${file.originalName}">파일명</h1>
       <p class="page-subtitle">
-                <span class="badge me-2"
-                      th:classappend="${file.type.name() == 'VIDEO'} ? 'bg-info' : 'bg-success'"
-                      th:text="${file.type}"></span>
+        <span class="badge me-2"
+              th:classappend="${file.type.name() == 'VIDEO' ? 'bg-video' : (file.type.name() == 'IMAGE' ? 'bg-image' : (file.type.name() == 'AUDIO' ? 'bg-audio' : (file.type.name() == 'DOCUMENT' ? 'bg-document' : (file.type.name() == 'ARCHIVE' ? 'bg-archive' : 'bg-other'))))}"
+              th:text="${file.type}"></span>
         <span th:text="${file.contentType}"></span>
       </p>
     </div>
@@ -54,7 +54,7 @@
           <!-- Video Player -->
           <div th:if="${file.type.name() == 'VIDEO'}" class="video-player-wrapper">
             <video class="video-player" controls preload="metadata"
-                   th:poster="${file.thumbnailPath != null} ? @{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'} : ''">
+                   th:poster="${file.thumbnailPath != null ? @streamixProperties.api.basePath + '/files/' + file.id + '/thumbnail' : ''}">
               <source th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
                       th:type="${file.contentType}">
               브라우저가 비디오 재생을 지원하지 않습니다.
@@ -66,6 +66,58 @@
             <img th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
                  th:alt="${file.originalName}"
                  class="image-preview">
+          </div>
+
+          <!-- Audio Player -->
+          <div th:if="${file.type.name() == 'AUDIO'}" class="audio-player-wrapper">
+            <div class="audio-icon">
+              <i class="bi bi-music-note-beamed"></i>
+            </div>
+            <h5 class="mb-3" th:text="${file.originalName}">오디오 파일</h5>
+            <audio class="audio-player" controls preload="metadata">
+              <source th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
+                      th:type="${file.contentType}">
+              브라우저가 오디오 재생을 지원하지 않습니다.
+            </audio>
+          </div>
+
+          <!-- Document Preview -->
+          <div th:if="${file.type.name() == 'DOCUMENT'}" class="document-preview-wrapper">
+            <div class="document-icon">
+              <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <h5 class="mb-2" th:text="${file.originalName}">문서 파일</h5>
+            <p class="text-muted mb-3" th:text="${file.contentType}">application/pdf</p>
+            <a th:href="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
+               class="btn btn-streamix" target="_blank">
+              <i class="bi bi-download me-2"></i>다운로드 / 열기
+            </a>
+          </div>
+
+          <!-- Archive Preview -->
+          <div th:if="${file.type.name() == 'ARCHIVE'}" class="archive-preview-wrapper">
+            <div class="archive-icon">
+              <i class="bi bi-file-earmark-zip"></i>
+            </div>
+            <h5 class="mb-2" th:text="${file.originalName}">압축 파일</h5>
+            <p class="text-muted mb-3" th:text="${file.contentType}">application/zip</p>
+            <a th:href="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
+               class="btn btn-streamix" target="_blank">
+              <i class="bi bi-download me-2"></i>다운로드
+            </a>
+          </div>
+
+          <!-- Other File Preview -->
+          <div th:if="${file.type.name() == 'OTHER'}" class="other-preview-wrapper">
+            <div class="other-icon">
+              <i class="bi bi-file-earmark"></i>
+            </div>
+            <h5 class="mb-2" th:text="${file.originalName}">파일</h5>
+            <p class="text-muted mb-3" th:text="${file.contentType}">unknown</p>
+            <a th:href="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
+               class="btn btn-streamix" target="_blank">
+              <i class="bi bi-download me-2"></i>다운로드
+            </a>
           </div>
         </div>
       </div>
@@ -80,7 +132,7 @@
             <label class="form-label small text-muted">스트리밍 URL</label>
             <div class="url-copy-box">
               <input type="text" readonly id="streamUrl"
-                     th:value="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}">
+                     th:value="${@streamixProperties.api.basePath + '/files/' + file.id + '/stream'}">
               <button type="button" class="btn btn-sm btn-outline-secondary btn-copy" data-target="streamUrl">
                 <i class="bi bi-clipboard"></i> 복사
               </button>
@@ -91,7 +143,7 @@
             <label class="form-label small text-muted">썸네일 URL</label>
             <div class="url-copy-box">
               <input type="text" readonly id="thumbnailUrl"
-                     th:value="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'}">
+                     th:value="${@streamixProperties.api.basePath + '/files/' + file.id + '/thumbnail'}">
               <button type="button" class="btn btn-sm btn-outline-secondary btn-copy" data-target="thumbnailUrl">
                 <i class="bi bi-clipboard"></i> 복사
               </button>
@@ -102,7 +154,7 @@
             <label class="form-label small text-muted">메타데이터 API</label>
             <div class="url-copy-box">
               <input type="text" readonly id="metaUrl"
-                     th:value="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id}}">
+                     th:value="${@streamixProperties.api.basePath + '/files/' + file.id}">
               <button type="button" class="btn btn-sm btn-outline-secondary btn-copy" data-target="metaUrl">
                 <i class="bi bi-clipboard"></i> 복사
               </button>
@@ -141,12 +193,12 @@
             <div class="file-info-item">
               <div class="file-info-label">썸네일</div>
               <div class="file-info-value">
-                                <span th:if="${file.thumbnailPath != null}" class="text-success">
-                                    <i class="bi bi-check-circle"></i> 있음
-                                </span>
-                <span th:unless="${file.thumbnailPath != null}" class="text-muted">
-                                    <i class="bi bi-x-circle"></i> 없음
-                                </span>
+                <span th:if="${file.thumbnailPath != null}" class="text-success">
+                  <i class="bi bi-check-circle"></i> 있음
+                </span>
+                <span th:if="${file.thumbnailPath == null}" class="text-muted">
+                  <i class="bi bi-x-circle"></i> 없음
+                </span>
               </div>
             </div>
             <div class="file-info-item">

@@ -1,10 +1,70 @@
 /**
  * Streamix Dashboard JavaScript
  * 미디어 스트리밍 관리 대시보드 스크립트
+ * @version 2.0.0
  */
 
 (function() {
   'use strict';
+
+  // ===== FileType 매핑 =====
+  var FileTypes = {
+    IMAGE: {
+      mimeTypes: ['image/'],
+      icon: 'bi-image',
+      color: 'success',
+      label: '이미지'
+    },
+    VIDEO: {
+      mimeTypes: ['video/'],
+      icon: 'bi-camera-video',
+      color: 'info',
+      label: '비디오'
+    },
+    AUDIO: {
+      mimeTypes: ['audio/'],
+      icon: 'bi-music-note-beamed',
+      color: 'purple',
+      label: '오디오'
+    },
+    DOCUMENT: {
+      mimeTypes: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument',
+        'application/vnd.ms-excel',
+        'application/vnd.ms-powerpoint',
+        'text/plain',
+        'text/html',
+        'text/css',
+        'text/javascript',
+        'application/json',
+        'application/xml'
+      ],
+      icon: 'bi-file-earmark-text',
+      color: 'warning',
+      label: '문서'
+    },
+    ARCHIVE: {
+      mimeTypes: [
+        'application/zip',
+        'application/x-rar-compressed',
+        'application/x-7z-compressed',
+        'application/gzip',
+        'application/x-tar',
+        'application/x-bzip2'
+      ],
+      icon: 'bi-file-earmark-zip',
+      color: 'primary',
+      label: '압축파일'
+    },
+    OTHER: {
+      mimeTypes: [],
+      icon: 'bi-file-earmark',
+      color: 'secondary',
+      label: '기타'
+    }
+  };
 
   // ===== 초기화 =====
   document.addEventListener('DOMContentLoaded', function() {
@@ -21,8 +81,8 @@
   function initCopyButtons() {
     document.querySelectorAll('.btn-copy').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        const targetId = this.dataset.target;
-        const input = document.getElementById(targetId);
+        var targetId = this.dataset.target;
+        var input = document.getElementById(targetId);
 
         if (input) {
           copyToClipboard(input.value, this);
@@ -33,7 +93,7 @@
 
   function copyToClipboard(text, button) {
     navigator.clipboard.writeText(text).then(function() {
-      const originalText = button.innerHTML;
+      var originalText = button.innerHTML;
       button.innerHTML = '<i class="bi bi-check"></i> 복사됨';
       button.classList.add('btn-success');
       button.classList.remove('btn-outline-secondary');
@@ -51,23 +111,23 @@
 
   // ===== 삭제 확인 =====
   function initDeleteConfirmation() {
-    const deleteModal = document.getElementById('deleteModal');
+    var deleteModal = document.getElementById('deleteModal');
     if (!deleteModal) return;
 
     deleteModal.addEventListener('show.bs.modal', function(event) {
-      const button = event.relatedTarget;
-      const fileId = button.dataset.fileId;
-      const fileName = button.dataset.fileName;
+      var button = event.relatedTarget;
+      var fileId = button.dataset.fileId;
+      var fileName = button.dataset.fileName;
 
-      const modalFileName = deleteModal.querySelector('#deleteFileName');
-      const modalForm = deleteModal.querySelector('#deleteForm');
+      var modalFileName = deleteModal.querySelector('#deleteFileName');
+      var modalForm = deleteModal.querySelector('#deleteForm');
 
       if (modalFileName) {
         modalFileName.textContent = fileName;
       }
 
       if (modalForm) {
-        const basePath = modalForm.dataset.basePath || '';
+        var basePath = modalForm.dataset.basePath || '';
         modalForm.action = basePath + '/files/' + fileId + '/delete';
       }
     });
@@ -75,7 +135,7 @@
 
   // ===== 툴팁 초기화 =====
   function initTooltips() {
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    var tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltipTriggerList.forEach(function(el) {
       new bootstrap.Tooltip(el);
     });
@@ -83,8 +143,8 @@
 
   // ===== 파일 업로드 (드래그 앤 드롭) =====
   function initFileUpload() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
+    var uploadArea = document.getElementById('uploadArea');
+    var fileInput = document.getElementById('fileInput');
 
     if (!uploadArea || !fileInput) return;
 
@@ -108,7 +168,7 @@
       e.preventDefault();
       uploadArea.classList.remove('drag-over');
 
-      const files = e.dataTransfer.files;
+      var files = e.dataTransfer.files;
       if (files.length > 0) {
         handleFileUpload(files[0]);
       }
@@ -122,29 +182,89 @@
     });
   }
 
+  /**
+   * 파일 타입 감지
+   */
+  function detectFileType(mimeType) {
+    if (!mimeType) return 'OTHER';
+
+    for (var typeName in FileTypes) {
+      if (typeName === 'OTHER') continue;
+
+      var typeConfig = FileTypes[typeName];
+      for (var i = 0; i < typeConfig.mimeTypes.length; i++) {
+        if (mimeType.startsWith(typeConfig.mimeTypes[i]) ||
+            mimeType === typeConfig.mimeTypes[i]) {
+          return typeName;
+        }
+      }
+    }
+    return 'OTHER';
+  }
+
+  /**
+   * 허용된 타입인지 확인
+   */
+  function isAllowedType(mimeType, allowedTypes) {
+    // allowedTypes가 비어있으면 모든 타입 허용
+    if (!allowedTypes || allowedTypes.length === 0) {
+      return true;
+    }
+
+    var detectedType = detectFileType(mimeType);
+    return allowedTypes.indexOf(detectedType) !== -1;
+  }
+
+  /**
+   * 허용 타입 문자열 생성
+   */
+  function getAllowedTypesString(allowedTypes) {
+    if (!allowedTypes || allowedTypes.length === 0) {
+      return '모든 파일';
+    }
+
+    return allowedTypes.map(function(type) {
+      return FileTypes[type] ? FileTypes[type].label : type;
+    }).join(', ');
+  }
+
   function handleFileUpload(file) {
-    const uploadArea = document.getElementById('uploadArea');
-    const progressBar = document.getElementById('uploadProgress');
-    const progressBarInner = progressBar?.querySelector('.progress-bar');
+    var uploadArea = document.getElementById('uploadArea');
+    var progressBar = document.getElementById('uploadProgress');
+    var progressBarInner = progressBar ? progressBar.querySelector('.progress-bar') : null;
+
+    // 허용 타입 가져오기 (body data-attribute에서)
+    var allowedTypesAttr = document.body.dataset.allowedTypes;
+    var allowedTypes = [];
+    if (allowedTypesAttr && allowedTypesAttr.trim() !== '' && allowedTypesAttr !== '[]') {
+      try {
+        // "[IMAGE, VIDEO]" 형태 파싱
+        allowedTypes = allowedTypesAttr
+        .replace(/[\[\]]/g, '')
+        .split(',')
+        .map(function(s) { return s.trim(); })
+        .filter(function(s) { return s.length > 0; });
+      } catch (e) {
+        console.warn('Failed to parse allowed types:', e);
+      }
+    }
 
     // 파일 타입 검증
-    const allowedTypes = ['image/', 'video/'];
-    const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
-
-    if (!isAllowed) {
-      showToast('이미지 또는 비디오 파일만 업로드할 수 있습니다.', 'error');
+    if (!isAllowedType(file.type, allowedTypes)) {
+      var allowedStr = getAllowedTypesString(allowedTypes);
+      showToast('허용되지 않는 파일 타입입니다. 허용: ' + allowedStr, 'error');
       return;
     }
 
-    // 파일 크기 제한 (500MB)
-    const maxSize = 500 * 1024 * 1024;
+    // 파일 크기 제한 (500MB - 기본값, 실제로는 서버 설정 따름)
+    var maxSize = 500 * 1024 * 1024;
     if (file.size > maxSize) {
       showToast('파일 크기는 500MB를 초과할 수 없습니다.', 'error');
       return;
     }
 
     // FormData 생성
-    const formData = new FormData();
+    var formData = new FormData();
     formData.append('file', file);
 
     // 프로그레스 바 표시
@@ -155,15 +275,15 @@
     uploadArea.classList.add('uploading');
 
     // AJAX 업로드
-    const xhr = new XMLHttpRequest();
-    const apiBasePath = document.body.dataset.apiBasePath || '/api/streamix';
+    var xhr = new XMLHttpRequest();
+    var apiBasePath = document.body.dataset.apiBasePath || '/api/streamix';
 
     xhr.open('POST', apiBasePath + '/files', true);
 
     // 업로드 진행률
     xhr.upload.onprogress = function(e) {
       if (e.lengthComputable && progressBarInner) {
-        const percent = Math.round((e.loaded / e.total) * 100);
+        var percent = Math.round((e.loaded / e.total) * 100);
         progressBarInner.style.width = percent + '%';
         progressBarInner.textContent = percent + '%';
       }
@@ -178,7 +298,12 @@
           location.reload();
         }, 1000);
       } else {
-        const error = JSON.parse(xhr.responseText);
+        var error = {};
+        try {
+          error = JSON.parse(xhr.responseText);
+        } catch (e) {
+          error.message = '업로드에 실패했습니다.';
+        }
         showToast(error.message || '업로드에 실패했습니다.', 'error');
         if (progressBar) {
           progressBar.classList.add('d-none');
@@ -199,10 +324,10 @@
 
   // ===== 자동 새로고침 (세션 페이지) =====
   function initAutoRefresh() {
-    const autoRefreshToggle = document.getElementById('autoRefresh');
+    var autoRefreshToggle = document.getElementById('autoRefresh');
     if (!autoRefreshToggle) return;
 
-    let refreshInterval = null;
+    var refreshInterval = null;
 
     autoRefreshToggle.addEventListener('change', function() {
       if (this.checked) {
@@ -219,24 +344,24 @@
   }
 
   function refreshActiveSessions() {
-    const sessionsTable = document.getElementById('activeSessionsTable');
+    var sessionsTable = document.getElementById('activeSessionsTable');
     if (!sessionsTable) return;
 
     // 실제 구현에서는 AJAX로 세션 데이터를 가져와 테이블 업데이트
     // 여기서는 간단히 시간만 업데이트
-    const timeElements = sessionsTable.querySelectorAll('.session-duration');
+    var timeElements = sessionsTable.querySelectorAll('.session-duration');
     timeElements.forEach(function(el) {
-      const startTime = new Date(el.dataset.startTime);
-      const duration = formatDuration(Date.now() - startTime.getTime());
+      var startTime = new Date(el.dataset.startTime);
+      var duration = formatDuration(Date.now() - startTime.getTime());
       el.textContent = duration;
     });
   }
 
   // ===== 사이드바 토글 (모바일) =====
   function initSidebarToggle() {
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
+    var toggleBtn = document.getElementById('sidebarToggle');
+    var sidebar = document.querySelector('.sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
 
     if (!toggleBtn || !sidebar) return;
 
@@ -259,19 +384,19 @@
   function initFormatters() {
     // 파일 크기 포맷
     document.querySelectorAll('[data-format="filesize"]').forEach(function(el) {
-      const bytes = parseInt(el.dataset.value, 10);
+      var bytes = parseInt(el.dataset.value, 10);
       el.textContent = formatFileSize(bytes);
     });
 
     // 날짜 포맷
     document.querySelectorAll('[data-format="datetime"]').forEach(function(el) {
-      const date = new Date(el.dataset.value);
+      var date = new Date(el.dataset.value);
       el.textContent = formatDateTime(date);
     });
 
     // 시간 포맷
     document.querySelectorAll('[data-format="duration"]').forEach(function(el) {
-      const ms = parseInt(el.dataset.value, 10);
+      var ms = parseInt(el.dataset.value, 10);
       el.textContent = formatDuration(ms);
     });
   }
@@ -280,9 +405,9 @@
   function formatFileSize(bytes) {
     if (bytes === 0) return '0 B';
 
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const k = 1024;
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var k = 1024;
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + units[i];
   }
@@ -290,11 +415,11 @@
   function formatDateTime(date) {
     if (!date || isNaN(date.getTime())) return '-';
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    var hours = String(date.getHours()).padStart(2, '0');
+    var minutes = String(date.getMinutes()).padStart(2, '0');
 
     return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
   }
@@ -302,9 +427,9 @@
   function formatDuration(ms) {
     if (!ms || ms < 0) return '-';
 
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
+    var seconds = Math.floor(ms / 1000);
+    var minutes = Math.floor(seconds / 60);
+    var hours = Math.floor(minutes / 60);
 
     if (hours > 0) {
       return hours + '시간 ' + (minutes % 60) + '분';
@@ -315,11 +440,27 @@
     }
   }
 
+  /**
+   * 파일 타입 아이콘 클래스 반환
+   */
+  function getFileTypeIcon(fileType) {
+    var config = FileTypes[fileType] || FileTypes.OTHER;
+    return config.icon;
+  }
+
+  /**
+   * 파일 타입 색상 클래스 반환
+   */
+  function getFileTypeColor(fileType) {
+    var config = FileTypes[fileType] || FileTypes.OTHER;
+    return config.color;
+  }
+
   // ===== 토스트 메시지 =====
   function showToast(message, type) {
-    const toastContainer = getOrCreateToastContainer();
+    var toastContainer = getOrCreateToastContainer();
 
-    const toastEl = document.createElement('div');
+    var toastEl = document.createElement('div');
     toastEl.className = 'toast align-items-center border-0';
     toastEl.classList.add(type === 'error' ? 'bg-danger' : 'bg-success');
     toastEl.classList.add('text-white');
@@ -336,7 +477,7 @@
 
     toastContainer.appendChild(toastEl);
 
-    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
     toast.show();
 
     toastEl.addEventListener('hidden.bs.toast', function() {
@@ -345,7 +486,7 @@
   }
 
   function getOrCreateToastContainer() {
-    let container = document.getElementById('toastContainer');
+    var container = document.getElementById('toastContainer');
 
     if (!container) {
       container = document.createElement('div');
@@ -364,7 +505,11 @@
     formatDateTime: formatDateTime,
     formatDuration: formatDuration,
     showToast: showToast,
-    copyToClipboard: copyToClipboard
+    copyToClipboard: copyToClipboard,
+    FileTypes: FileTypes,
+    detectFileType: detectFileType,
+    getFileTypeIcon: getFileTypeIcon,
+    getFileTypeColor: getFileTypeColor
   };
 
 })();

@@ -4,31 +4,6 @@
       layout:decorate="~{streamix/layout}">
 <head>
   <title>파일 관리</title>
-  <style>
-    .upload-area {
-      border: 2px dashed var(--streamix-border);
-      border-radius: 1rem;
-      padding: 3rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: var(--streamix-card-bg);
-    }
-    .upload-area:hover,
-    .upload-area.drag-over {
-      border-color: var(--streamix-primary);
-      background: rgba(99, 102, 241, 0.05);
-    }
-    .upload-area.uploading {
-      pointer-events: none;
-      opacity: 0.7;
-    }
-    .upload-icon {
-      font-size: 3rem;
-      color: var(--streamix-primary);
-      margin-bottom: 1rem;
-    }
-  </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -61,7 +36,7 @@
         </button>
       </div>
 
-      <div th:unless="${#lists.isEmpty(files)}" class="table-responsive">
+      <div th:if="${!#lists.isEmpty(files)}" class="table-responsive">
         <table class="table table-hover mb-0">
           <thead>
           <tr>
@@ -76,12 +51,15 @@
           <tbody>
           <tr th:each="file : ${files}">
             <td>
+              <!-- 썸네일이 있는 경우 -->
               <img th:if="${file.thumbnailPath != null}"
                    th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'}"
                    class="thumbnail-preview" alt="썸네일">
-              <div th:unless="${file.thumbnailPath != null}"
-                   class="file-icon" th:classappend="${file.type.name().toLowerCase()}">
-                <i th:class="${file.type.name() == 'VIDEO'} ? 'bi bi-camera-video' : 'bi bi-image'"></i>
+              <!-- 썸네일이 없는 경우 - FileType별 아이콘 -->
+              <div th:if="${file.thumbnailPath == null}"
+                   class="file-icon"
+                   th:classappend="${file.type.name().toLowerCase()}">
+                <i th:class="${file.type.name() == 'VIDEO' ? 'bi bi-camera-video' : (file.type.name() == 'IMAGE' ? 'bi bi-image' : (file.type.name() == 'AUDIO' ? 'bi bi-music-note-beamed' : (file.type.name() == 'DOCUMENT' ? 'bi bi-file-earmark-text' : (file.type.name() == 'ARCHIVE' ? 'bi bi-file-earmark-zip' : 'bi bi-file-earmark'))))}"></i>
               </div>
             </td>
             <td>
@@ -89,9 +67,10 @@
               <small class="text-muted" th:text="'ID: ' + ${#strings.abbreviate(file.id.toString(), 20)}"></small>
             </td>
             <td>
-                                <span class="badge"
-                                      th:classappend="${file.type.name() == 'VIDEO'} ? 'bg-info' : 'bg-success'"
-                                      th:text="${file.type}"></span>
+              <!-- FileType별 Badge -->
+              <span class="badge"
+                    th:classappend="${file.type.name() == 'VIDEO' ? 'bg-video' : (file.type.name() == 'IMAGE' ? 'bg-image' : (file.type.name() == 'AUDIO' ? 'bg-audio' : (file.type.name() == 'DOCUMENT' ? 'bg-document' : (file.type.name() == 'ARCHIVE' ? 'bg-archive' : 'bg-other'))))}"
+                    th:text="${file.type}"></span>
             </td>
             <td>
               <span th:text="${#numbers.formatDecimal(file.size / 1024 / 1024, 1, 2)} + ' MB'"></span>
@@ -130,16 +109,16 @@
     <div th:if="${totalPages > 1}" class="card-footer bg-transparent">
       <nav>
         <ul class="pagination pagination-sm justify-content-center mb-0">
-          <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+          <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
             <a class="page-link" th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${currentPage - 1})}">
               <i class="bi bi-chevron-left"></i>
             </a>
           </li>
           <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-              class="page-item" th:classappend="${i == currentPage} ? 'active' : ''">
+              class="page-item" th:classappend="${i == currentPage ? 'active' : ''}">
             <a class="page-link" th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${i})}" th:text="${i + 1}"></a>
           </li>
-          <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+          <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
             <a class="page-link" th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${currentPage + 1})}">
               <i class="bi bi-chevron-right"></i>
             </a>
@@ -165,9 +144,14 @@
               <i class="bi bi-cloud-arrow-up"></i>
             </div>
             <div class="mb-2 fw-medium">클릭하거나 파일을 드래그하세요</div>
-            <div class="text-muted small">이미지, 비디오 파일 지원 (최대 500MB)</div>
+            <div class="text-muted small">
+              <span th:if="${@streamixProperties.storage.isAllTypesAllowed()}">모든 파일 지원</span>
+              <span th:if="${!@streamixProperties.storage.isAllTypesAllowed()}"
+                    th:text="${T(java.lang.String).join(', ', @streamixProperties.storage.allowedTypes)} + ' 파일 지원'"></span>
+              (최대 500MB)
+            </div>
           </div>
-          <input type="file" id="fileInput" class="d-none" accept="image/*,video/*">
+          <input type="file" id="fileInput" class="d-none">
 
           <div id="uploadProgress" class="progress mt-3 d-none" style="height: 8px;">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-streamix"
