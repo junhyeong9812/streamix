@@ -10,10 +10,11 @@ package io.github.junhyeong9812.streamix.core.domain.exception;
  * <h2>예외 계층 구조</h2>
  * <pre>
  * StreamixException (sealed)
- * ├── FileNotFoundException      - 파일을 찾을 수 없음
- * ├── InvalidFileTypeException   - 지원하지 않는 파일 타입
- * ├── StorageException           - 저장소 작업 실패
- * └── ThumbnailGenerationException - 썸네일 생성 실패
+ * ├── FileNotFoundException        - 파일을 찾을 수 없음
+ * ├── InvalidFileTypeException     - 지원하지 않는 파일 타입
+ * ├── StorageException             - 저장소 작업 실패
+ * ├── ThumbnailGenerationException - 썸네일 생성 실패
+ * └── FileSizeExceededException    - 파일 크기 초과 (1.0.7+)
  * </pre>
  *
  * <h2>예외 처리 예시</h2>
@@ -26,6 +27,7 @@ package io.github.junhyeong9812.streamix.core.domain.exception;
  *         case InvalidFileTypeException ift -> handleInvalidType(ift);
  *         case StorageException se -> handleStorageError(se);
  *         case ThumbnailGenerationException tge -> handleThumbnailError(tge);
+ *         case FileSizeExceededException fse -> handleSizeExceeded(fse);
  *     }
  * }
  * }</pre>
@@ -36,12 +38,14 @@ package io.github.junhyeong9812.streamix.core.domain.exception;
  * @see InvalidFileTypeException
  * @see StorageException
  * @see ThumbnailGenerationException
+ * @see FileSizeExceededException
  */
 public sealed class StreamixException extends RuntimeException
     permits FileNotFoundException,
     InvalidFileTypeException,
     StorageException,
-    ThumbnailGenerationException {
+    ThumbnailGenerationException,
+    FileSizeExceededException {
 
   /**
    * 메시지만으로 예외를 생성합니다.
