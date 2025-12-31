@@ -1,6 +1,5 @@
 package io.github.junhyeong9812.streamix.core.application.service;
 
-import io.github.junhyeong9812.streamix.core.application.port.in.GetThumbnailUseCase;
 import io.github.junhyeong9812.streamix.core.application.port.in.StreamFileUseCase;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
@@ -16,8 +15,7 @@ import java.util.UUID;
 /**
  * 파일 스트리밍 서비스 구현체입니다.
  *
- * <p>{@link StreamFileUseCase}와 {@link GetThumbnailUseCase}를 구현하며,
- * HTTP Range 요청을 지원하는 파일 스트리밍과 썸네일 조회를 처리합니다.</p>
+ * <p>{@link StreamFileUseCase}를 구현하며, HTTP Range 요청을 지원하는 파일 스트리밍을 처리합니다.</p>
  *
  * <h2>Range 요청 처리</h2>
  * <p>HTTP Range 헤더를 파싱하여 부분 콘텐츠를 반환합니다:</p>
@@ -36,10 +34,9 @@ import java.util.UUID;
  * @author junhyeong9812
  * @since 1.0.0
  * @see StreamFileUseCase
- * @see GetThumbnailUseCase
  * @see StreamableFile
  */
-public class FileStreamService implements StreamFileUseCase, GetThumbnailUseCase {
+public class FileStreamService implements StreamFileUseCase {
 
   private static final Logger log = LoggerFactory.getLogger(FileStreamService.class);
 
@@ -73,38 +70,6 @@ public class FileStreamService implements StreamFileUseCase, GetThumbnailUseCase
     }
 
     return streamFull(metadata);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public StreamableFile getThumbnail(UUID fileId) {
-    log.debug("Getting thumbnail for file: {}", fileId);
-
-    FileMetadata metadata = findMetadataOrThrow(fileId);
-
-    if (!metadata.hasThumbnail()) {
-      throw new FileNotFoundException("Thumbnail not found for file: " + fileId);
-    }
-
-    InputStream thumbnailStream = storage.load(metadata.thumbnailPath());
-    long thumbnailSize = storage.getSize(metadata.thumbnailPath());
-
-    // 썸네일용 임시 메타데이터 생성
-    FileMetadata thumbnailMetadata = new FileMetadata(
-        metadata.id(),
-        metadata.originalName() + "_thumb.jpg",
-        metadata.type(),
-        "image/jpeg",
-        thumbnailSize,
-        metadata.thumbnailPath(),
-        null,
-        metadata.createdAt(),
-        metadata.updatedAt()
-    );
-
-    return StreamableFile.full(thumbnailMetadata, thumbnailStream);
   }
 
   /**
