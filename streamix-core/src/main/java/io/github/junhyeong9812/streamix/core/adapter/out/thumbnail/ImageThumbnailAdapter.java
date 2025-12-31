@@ -33,6 +33,10 @@ import java.io.InputStream;
  *   <li>비율: 원본 비율 유지 (지정된 크기 내에서 fit)</li>
  * </ul>
  *
+ * <h2>우선순위</h2>
+ * <p>기본 우선순위는 500입니다. 커스텀 이미지 생성기를 등록하려면
+ * 더 낮은 order 값을 사용하세요.</p>
+ *
  * <h2>의존성</h2>
  * <p>Thumbnailator 라이브러리가 필요합니다:</p>
  * <pre>
@@ -63,12 +67,6 @@ public class ImageThumbnailAdapter implements ThumbnailGeneratorPort {
   private static final Logger log = LoggerFactory.getLogger(ImageThumbnailAdapter.class);
 
   /**
-   * ImageThumbnailAdapter의 기본 생성자입니다.
-   */
-  public ImageThumbnailAdapter() {
-  }
-
-  /**
    * 출력 JPEG 품질 (0.0 ~ 1.0).
    */
   private static final double OUTPUT_QUALITY = 0.8;
@@ -77,6 +75,19 @@ public class ImageThumbnailAdapter implements ThumbnailGeneratorPort {
    * 출력 이미지 형식.
    */
   private static final String OUTPUT_FORMAT = "jpg";
+
+  /**
+   * 기본 우선순위.
+   *
+   * @since 1.0.7
+   */
+  private static final int DEFAULT_ORDER = 500;
+
+  /**
+   * ImageThumbnailAdapter의 기본 생성자입니다.
+   */
+  public ImageThumbnailAdapter() {
+  }
 
   /**
    * {@inheritDoc}
@@ -138,5 +149,29 @@ public class ImageThumbnailAdapter implements ThumbnailGeneratorPort {
     } catch (IOException e) {
       throw new ThumbnailGenerationException("Failed to generate thumbnail from path: " + sourcePath, e);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * <p>이미지 썸네일 생성기의 기본 우선순위는 500입니다.</p>
+   *
+   * @return 500 (기본 라이브러리 생성기 우선순위)
+   * @since 1.0.7
+   */
+  @Override
+  public int getOrder() {
+    return DEFAULT_ORDER;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @return "ImageThumbnailAdapter"
+   * @since 1.0.7
+   */
+  @Override
+  public String getName() {
+    return "ImageThumbnailAdapter";
   }
 }

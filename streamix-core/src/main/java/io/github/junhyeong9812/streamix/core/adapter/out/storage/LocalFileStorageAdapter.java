@@ -134,7 +134,11 @@ public class LocalFileStorageAdapter implements FileStoragePort {
    */
   @Override
   public InputStream load(String storagePath) {
-    Path filePath = Path.of(storagePath);
+//    Path filePath = Path.of(storagePath);
+    // 상대 경로면 basePath 기준으로 해석
+    Path filePath = storagePath.startsWith("/")
+        ? Path.of(storagePath)
+        : basePath.resolve(storagePath);
 
     if (!Files.exists(filePath)) {
       throw new FileNotFoundException(storagePath);
