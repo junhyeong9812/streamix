@@ -100,7 +100,7 @@ public interface ThumbnailGeneratorPort {
    * 예를 들어, 특정 타입에 대한 커스텀 생성기(order=10)가 기본 생성기(order=1000)보다
    * 먼저 선택됩니다.</p>
    *
-   * <h3>권장 우선순위</h3>
+   * <p><strong>권장 우선순위:</strong></p>
    * <ul>
    *   <li>0-99: 커스텀 고우선순위 생성기</li>
    *   <li>100-499: 일반 커스텀 생성기</li>
