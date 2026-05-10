@@ -262,37 +262,65 @@ public class StreamingSessionEntity {
 
   // ========== Getters ==========
 
-  /** @return 세션 ID */
+  /**
+   * 세션 ID를 반환합니다.
+   *
+   * @return 세션 ID
+   */
   public Long getId() {
     return id;
   }
 
-  /** @return 파일 ID */
+  /**
+   * 스트리밍 대상 파일의 ID를 반환합니다.
+   *
+   * @return 파일 ID
+   */
   public UUID getFileId() {
     return fileId;
   }
 
-  /** @return 클라이언트 IP */
+  /**
+   * 클라이언트 IP 주소를 반환합니다.
+   *
+   * @return 클라이언트 IP
+   */
   public String getClientIp() {
     return clientIp;
   }
 
-  /** @return User-Agent */
+  /**
+   * 클라이언트 User-Agent 헤더 값을 반환합니다.
+   *
+   * @return User-Agent
+   */
   public String getUserAgent() {
     return userAgent;
   }
 
-  /** @return Range 시작 바이트 */
+  /**
+   * HTTP Range 요청의 시작 바이트를 반환합니다.
+   *
+   * @return Range 시작 바이트 (Range 요청이 아니면 {@code null})
+   */
   public Long getRangeStart() {
     return rangeStart;
   }
 
-  /** @return Range 종료 바이트 */
+  /**
+   * HTTP Range 요청의 종료 바이트를 반환합니다.
+   *
+   * @return Range 종료 바이트 (Range 요청이 아니면 {@code null})
+   */
   public Long getRangeEnd() {
     return rangeEnd;
   }
 
-  /** @return 전송 바이트 수 */
+  /**
+   * 클라이언트로 전송된 총 바이트 수를 반환합니다.
+   *
+   * @return 전송 바이트 수
+   */
   public long getBytesSent() {
     return bytesSent;
   }
@@ -308,22 +336,38 @@ public class StreamingSessionEntity {
     return ByteSizeFormatter.format(bytesSent);
   }
 
-  /** @return 지속 시간(ms) */
+  /**
+   * 스트리밍 소요 시간을 반환합니다.
+   *
+   * @return 소요 시간 (밀리초, 미완료 세션이면 {@code null})
+   */
   public Long getDurationMs() {
     return durationMs;
   }
 
-  /** @return 세션 상태 */
+  /**
+   * 현재 세션 상태를 반환합니다.
+   *
+   * @return 세션 상태 (STARTED / STREAMING / COMPLETED / ERROR / CANCELLED)
+   */
   public SessionStatus getStatus() {
     return status;
   }
 
-  /** @return 시작 시각 */
+  /**
+   * 세션 시작 시각을 반환합니다.
+   *
+   * @return 시작 시각
+   */
   public LocalDateTime getStartedAt() {
     return startedAt;
   }
 
-  /** @return 종료 시각 */
+  /**
+   * 세션 종료 시각을 반환합니다.
+   *
+   * @return 종료 시각 (진행 중이면 {@code null})
+   */
   public LocalDateTime getEndedAt() {
     return endedAt;
   }
