@@ -4,6 +4,7 @@ import io.github.junhyeong9812.streamix.core.application.port.in.StreamFileUseCa
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileNotFoundException;
+import io.github.junhyeong9812.streamix.core.domain.exception.RangeNotSatisfiableException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.StreamableFile;
 import org.slf4j.Logger;
@@ -65,11 +66,21 @@ public class FileStreamService implements StreamFileUseCase {
 
     FileMetadata metadata = findMetadataOrThrow(command.fileId());
 
-    if (command.hasRange()) {
-      return streamPartial(metadata, command.rangeHeader());
+    // multi-range는 미지원 → 전체 응답으로 fallback (RFC 7233은 multipart/byteranges 권장이나 단순화)
+    if (!command.hasRange() || isMultiRange(command.rangeHeader())) {
+      return streamFull(metadata);
     }
 
-    return streamFull(metadata);
+    return streamPartial(metadata, command.rangeHeader());
+  }
+
+  /**
+   * Range 헤더가 multi-range(bytes=0-100,200-300) 형식인지 확인합니다.
+   */
+  private static boolean isMultiRange(String rangeHeader) {
+    return rangeHeader != null
+        && rangeHeader.startsWith("bytes=")
+        && rangeHeader.contains(",");
   }
 
   /**
@@ -103,52 +114,82 @@ public class FileStreamService implements StreamFileUseCase {
   }
 
   /**
-   * Range 헤더를 파싱합니다.
+   * Range 헤더를 파싱합니다 (RFC 7233 준수).
    *
    * <p>지원 형식:</p>
    * <ul>
-   *   <li>{@code bytes=start-end} - start부터 end까지</li>
-   *   <li>{@code bytes=start-} - start부터 끝까지</li>
-   *   <li>{@code bytes=-suffix} - 마지막 suffix 바이트</li>
+   *   <li>{@code bytes=start-end} — start부터 end까지</li>
+   *   <li>{@code bytes=start-} — start부터 끝까지</li>
+   *   <li>{@code bytes=-suffix} — 마지막 suffix 바이트</li>
+   * </ul>
+   *
+   * <p>처리 정책:</p>
+   * <ul>
+   *   <li>bytes 단위 외 (예: items=) — 헤더 무시, 전체 응답</li>
+   *   <li>multi-range (예: bytes=0-100,200-300) — 미지원, 전체 응답으로 fallback</li>
+   *   <li>잘못된 형식 (예: bytes=abc-def) — {@link IllegalArgumentException} → 400</li>
+   *   <li>start &gt;= fileSize — {@link RangeNotSatisfiableException} → 416</li>
    * </ul>
    *
    * @param rangeHeader Range 헤더 값
    * @param fileSize    전체 파일 크기
    * @return 파싱된 Range
    * @throws IllegalArgumentException 잘못된 Range 형식
+   * @throws RangeNotSatisfiableException Range가 파일 크기를 초과
    */
   private Range parseRange(String rangeHeader, long fileSize) {
-    if (rangeHeader == null || !rangeHeader.startsWith("bytes=")) {
+    if (rangeHeader == null || rangeHeader.isBlank() || !rangeHeader.startsWith("bytes=")) {
       return new Range(0, fileSize - 1);
     }
 
     String rangeValue = rangeHeader.substring(6).trim();
-    String[] parts = rangeValue.split("-");
+
+    // multi-range는 stream() 진입 시점에 차단됨 (단일 책임)
+    int dashIdx = rangeValue.indexOf('-');
+    if (dashIdx < 0) {
+      throw new IllegalArgumentException("Invalid range header: " + rangeHeader);
+    }
+
+    String startStr = rangeValue.substring(0, dashIdx).trim();
+    String endStr = rangeValue.substring(dashIdx + 1).trim();
 
     long start;
     long end;
-
-    if (rangeValue.startsWith("-")) {
-      // bytes=-500 (마지막 500바이트)
-      long suffix = Long.parseLong(parts[1]);
-      start = Math.max(0, fileSize - suffix);
-      end = fileSize - 1;
-    } else if (parts.length == 1 || parts[1].isEmpty()) {
-      // bytes=1024- (1024부터 끝까지)
-      start = Long.parseLong(parts[0]);
-      end = fileSize - 1;
-    } else {
-      // bytes=0-1023
-      start = Long.parseLong(parts[0]);
-      end = Long.parseLong(parts[1]);
+    try {
+      if (startStr.isEmpty()) {
+        // bytes=-N
+        if (endStr.isEmpty()) {
+          throw new IllegalArgumentException("Invalid range header: " + rangeHeader);
+        }
+        long suffixLen = Long.parseLong(endStr);
+        if (suffixLen <= 0) {
+          throw new IllegalArgumentException("Invalid suffix length: " + rangeHeader);
+        }
+        start = Math.max(0, fileSize - suffixLen);
+        end = fileSize - 1;
+      } else if (endStr.isEmpty()) {
+        // bytes=N-
+        start = Long.parseLong(startStr);
+        end = fileSize - 1;
+      } else {
+        // bytes=N-M
+        start = Long.parseLong(startStr);
+        end = Long.parseLong(endStr);
+      }
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid range numbers in: " + rangeHeader, e);
     }
 
-    // 범위 검증
-    start = Math.max(0, start);
-    end = Math.min(end, fileSize - 1);
+    // RFC 7233 §4.4 — 416 Range Not Satisfiable
+    if (start < 0 || start >= fileSize) {
+      throw new RangeNotSatisfiableException(fileSize);
+    }
 
+    if (end >= fileSize) {
+      end = fileSize - 1;
+    }
     if (start > end) {
-      throw new IllegalArgumentException("Invalid range: " + rangeHeader);
+      throw new RangeNotSatisfiableException(fileSize);
     }
 
     return new Range(start, end);

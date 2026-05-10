@@ -256,10 +256,14 @@
       return;
     }
 
-    // 파일 크기 제한 (500MB - 기본값, 실제로는 서버 설정 따름)
-    var maxSize = 500 * 1024 * 1024;
-    if (file.size > maxSize) {
-      showToast('파일 크기는 500MB를 초과할 수 없습니다.', 'error');
+    // 파일 크기 제한 — 서버 설정에서 동적으로 가져옴 (0 또는 미설정이면 무제한)
+    var maxSizeAttr = document.body.dataset.maxFileSize;
+    var maxSize = maxSizeAttr ? parseInt(maxSizeAttr, 10) : 0;
+    if (maxSize > 0 && file.size > maxSize) {
+      showToast(
+          '파일 크기는 ' + formatFileSize(maxSize) + '를 초과할 수 없습니다.',
+          'error'
+      );
       return;
     }
 
@@ -456,24 +460,40 @@
     return config.color;
   }
 
-  // ===== 토스트 메시지 =====
+  // ===== 토스트 메시지 (XSS-safe: textContent + DOM API) =====
   function showToast(message, type) {
     var toastContainer = getOrCreateToastContainer();
+    var isError = type === 'error';
 
     var toastEl = document.createElement('div');
-    toastEl.className = 'toast align-items-center border-0';
-    toastEl.classList.add(type === 'error' ? 'bg-danger' : 'bg-success');
-    toastEl.classList.add('text-white');
+    toastEl.className = 'toast align-items-center border-0 text-white';
+    toastEl.classList.add(isError ? 'bg-danger' : 'bg-success');
     toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
 
-    toastEl.innerHTML =
-        '<div class="d-flex">' +
-        '<div class="toast-body">' +
-        '<i class="bi ' + (type === 'error' ? 'bi-exclamation-circle' : 'bi-check-circle') + ' me-2"></i>' +
-        message +
-        '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
-        '</div>';
+    var dFlex = document.createElement('div');
+    dFlex.className = 'd-flex';
+
+    var body = document.createElement('div');
+    body.className = 'toast-body';
+
+    var icon = document.createElement('i');
+    icon.className = 'bi me-2 ' + (isError ? 'bi-exclamation-circle' : 'bi-check-circle');
+    body.appendChild(icon);
+
+    // 사용자 입력은 textContent로 안전하게 처리 (XSS 방지)
+    body.appendChild(document.createTextNode(' ' + (message || '')));
+
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close btn-close-white me-2 m-auto';
+    closeBtn.setAttribute('data-bs-dismiss', 'toast');
+    closeBtn.setAttribute('aria-label', 'Close');
+
+    dFlex.appendChild(body);
+    dFlex.appendChild(closeBtn);
+    toastEl.appendChild(dFlex);
 
     toastContainer.appendChild(toastEl);
 

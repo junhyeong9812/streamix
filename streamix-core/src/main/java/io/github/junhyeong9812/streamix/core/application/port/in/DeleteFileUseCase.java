@@ -43,4 +43,16 @@ public interface DeleteFileUseCase {
    *         파일이 존재하지 않는 경우
    */
   void delete(UUID fileId);
+
+  /**
+   * 파일을 멱등하게 삭제합니다.
+   *
+   * <p>존재하지 않아도 예외 없이 false를 반환합니다.
+   * 같은 ID를 여러 번 호출해도 안전합니다 (REST DELETE 멱등성, RFC 7231 §4.2.2).</p>
+   *
+   * @param fileId 삭제할 파일 ID
+   * @return 실제 삭제 동작이 발생했으면 {@code true}
+   * @since 2.0.1
+   */
+  boolean deleteIdempotent(UUID fileId);
 }

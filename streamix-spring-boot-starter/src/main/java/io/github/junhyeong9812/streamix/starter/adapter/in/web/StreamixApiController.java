@@ -220,7 +220,7 @@ public class StreamixApiController {
     StreamableFile streamableFile = streamFileUseCase.stream(command);
 
     HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.parseMediaType(streamableFile.getContentType()));
+    headers.setContentType(safeMediaType(streamableFile.getContentType()));
     headers.setContentLength(streamableFile.contentLength());
     headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
 
@@ -240,6 +240,26 @@ public class StreamixApiController {
     return ResponseEntity.ok()
         .headers(headers)
         .body(body);
+  }
+
+  /**
+   * 잘못된 형식의 contentType으로부터 안전하게 MediaType을 생성합니다.
+   *
+   * <p>저장된 contentType이 사용자 업로드 시점의 값이라 형식 오류 가능성이 있습니다.
+   * 파싱 실패 시 application/octet-stream으로 fallback합니다.</p>
+   *
+   * @since 2.0.1
+   */
+  private static MediaType safeMediaType(String contentType) {
+    if (contentType == null || contentType.isBlank()) {
+      return MediaType.APPLICATION_OCTET_STREAM;
+    }
+    try {
+      return MediaType.parseMediaType(contentType);
+    } catch (org.springframework.util.InvalidMimeTypeException e) {
+      log.warn("Invalid stored contentType '{}', falling back to octet-stream", contentType);
+      return MediaType.APPLICATION_OCTET_STREAM;
+    }
   }
 
   /**

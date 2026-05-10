@@ -381,7 +381,52 @@ class FileMetadataTest {
     @DisplayName("GB 단위로 표시한다")
     void formatsGigabytes() {
       FileMetadata metadata = createMetadataWithSize(2_147_483_648L);  // 2 GB
-      assertThat(metadata.getFormattedSize()).isEqualTo("2.00 GB");
+      // ByteSizeFormatter 통합으로 정밀도 1자리로 통일 (P2-13)
+      assertThat(metadata.getFormattedSize()).isEqualTo("2.0 GB");
+    }
+  }
+
+  @Nested
+  @DisplayName("isPreviewable 테스트 (P1-10)")
+  class IsPreviewableTest {
+
+    @Test
+    @DisplayName("IMAGE는 미리보기 가능")
+    void imagePreviewable() {
+      assertThat(createMetadataWithType(FileType.IMAGE).isPreviewable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("VIDEO/AUDIO는 미리보기 가능")
+    void mediaPreviewable() {
+      assertThat(createMetadataWithType(FileType.VIDEO).isPreviewable()).isTrue();
+      assertThat(createMetadataWithType(FileType.AUDIO).isPreviewable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("PDF DOCUMENT는 미리보기 가능")
+    void pdfPreviewable() {
+      FileMetadata m = new FileMetadata(
+          UUID.randomUUID(), "report.pdf", FileType.DOCUMENT, "application/pdf",
+          1024L, "/path", null, LocalDateTime.now(), LocalDateTime.now());
+      assertThat(m.isPreviewable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("PDF가 아닌 DOCUMENT는 미리보기 불가")
+    void nonPdfDocumentNotPreviewable() {
+      FileMetadata m = new FileMetadata(
+          UUID.randomUUID(), "doc.docx", FileType.DOCUMENT,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          1024L, "/path", null, LocalDateTime.now(), LocalDateTime.now());
+      assertThat(m.isPreviewable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("ARCHIVE/OTHER는 미리보기 불가")
+    void archiveOtherNotPreviewable() {
+      assertThat(createMetadataWithType(FileType.ARCHIVE).isPreviewable()).isFalse();
+      assertThat(createMetadataWithType(FileType.OTHER).isPreviewable()).isFalse();
     }
   }
 

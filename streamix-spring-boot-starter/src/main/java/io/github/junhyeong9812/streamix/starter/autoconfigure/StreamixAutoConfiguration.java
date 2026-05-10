@@ -11,13 +11,15 @@ import io.github.junhyeong9812.streamix.core.application.service.FileStreamServi
 import io.github.junhyeong9812.streamix.core.application.service.FileUploadService;
 import io.github.junhyeong9812.streamix.core.application.service.ThumbnailService;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
 import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 import java.util.Set;
@@ -91,9 +93,10 @@ import java.util.stream.Collectors;
  * }
  * }</pre>
  *
- * <h2>설정 파일 위치</h2>
- * <p>이 클래스는 {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}
- * 파일에 등록되어 Spring Boot가 자동으로 로드합니다.</p>
+ * <h2>활성화 방법</h2>
+ * <p>이 클래스는 {@link io.github.junhyeong9812.streamix.starter.annotation.EnableStreamix}
+ * 어노테이션의 {@code @Import}로 활성화됩니다. 사용자가 메인 클래스에
+ * {@code @EnableStreamix}를 추가해야 동작합니다.</p>
  *
  * <h2>로깅</h2>
  * <p>자동 설정 시 주요 설정값과 Bean 생성 정보가 INFO 레벨로 로깅됩니다:</p>
@@ -116,7 +119,8 @@ import java.util.stream.Collectors;
  * @see StreamixProperties
  * @see io.github.junhyeong9812.streamix.starter.annotation.EnableStreamix
  */
-@AutoConfiguration
+@Configuration(proxyBeanMethods = false)
+@AutoConfigureAfter({StreamixRepositoryConfiguration.class, StreamixThumbnailConfiguration.class})
 @EnableConfigurationProperties(StreamixProperties.class)
 public class StreamixAutoConfiguration {
 
@@ -135,7 +139,7 @@ public class StreamixAutoConfiguration {
     this.properties = properties;
     log.info("Streamix Auto-Configuration initialized");
     log.info("  Storage path: {}", properties.storage().getResolvedBasePath());
-    log.info("  Max file size: {}", formatSize(properties.storage().maxFileSize()));
+    log.info("  Max file size: {}", ByteSizeFormatter.format(properties.storage().maxFileSize()));
     log.info("  Allowed types: {}",
         properties.storage().isAllTypesAllowed() ? "all" : properties.storage().allowedTypes());
     log.info("  Thumbnail enabled: {}", properties.thumbnail().enabled());
@@ -235,7 +239,7 @@ public class StreamixAutoConfiguration {
     Set<FileType> allowedTypes = parseAllowedTypes(properties.storage().allowedTypes());
 
     log.info("Creating FileUploadService: thumbnailEnabled={}, size={}x{}, maxFileSize={}, allowedTypes={}",
-        enabled, width, height, formatSize(maxFileSize),
+        enabled, width, height, ByteSizeFormatter.format(maxFileSize),
         allowedTypes.isEmpty() ? "all" : allowedTypes);
 
     return new FileUploadService(
@@ -339,18 +343,4 @@ public class StreamixAutoConfiguration {
         .collect(Collectors.toSet());
   }
 
-  /**
-   * 바이트 크기를 읽기 좋은 형식으로 포맷합니다.
-   */
-  private static String formatSize(long bytes) {
-    if (bytes < 1024) {
-      return bytes + " B";
-    } else if (bytes < 1024 * 1024) {
-      return String.format("%.1f KB", bytes / 1024.0);
-    } else if (bytes < 1024L * 1024 * 1024) {
-      return String.format("%.1f MB", bytes / (1024.0 * 1024));
-    } else {
-      return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
-    }
-  }
 }

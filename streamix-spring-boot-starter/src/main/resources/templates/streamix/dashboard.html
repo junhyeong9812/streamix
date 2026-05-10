@@ -137,8 +137,7 @@
                         th:text="${file.type}"></span>
                 </td>
                 <td>
-                  <span data-format="filesize" th:data-value="${file.size}"
-                        th:text="${#numbers.formatDecimal(file.size / 1024 / 1024, 1, 1)} + ' MB'"></span>
+                  <span th:text="${file.formattedSize}">0 B</span>
                 </td>
                 <td>
                   <span class="text-muted small"

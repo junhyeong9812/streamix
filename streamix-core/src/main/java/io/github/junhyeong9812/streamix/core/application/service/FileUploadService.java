@@ -5,10 +5,13 @@ import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPo
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileSizeExceededException;
 import io.github.junhyeong9812.streamix.core.domain.exception.InvalidFileTypeException;
+import io.github.junhyeong9812.streamix.core.domain.exception.StorageException;
+import io.github.junhyeong9812.streamix.core.domain.exception.ThumbnailGenerationException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
 import io.github.junhyeong9812.streamix.core.domain.model.UploadResult;
 import io.github.junhyeong9812.streamix.core.domain.service.FileTypeDetector;
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +119,7 @@ public class FileUploadService implements UploadFileUseCase {
     this.allowedTypes = allowedTypes != null ? Set.copyOf(allowedTypes) : Set.of();
 
     log.info("FileUploadService initialized: maxFileSize={}, allowedTypes={}, thumbnail={}",
-        maxFileSize > 0 ? formatSize(maxFileSize) : "unlimited",
+        maxFileSize > 0 ? ByteSizeFormatter.format(maxFileSize) : "unlimited",
         this.allowedTypes.isEmpty() ? "all" : this.allowedTypes,
         thumbnailEnabled);
   }
@@ -168,32 +171,35 @@ public class FileUploadService implements UploadFileUseCase {
    */
   @Override
   public UploadResult upload(UploadCommand command) {
-    log.info("Uploading file: {}, size: {}", command.originalName(), formatSize(command.size()));
+    log.info("Uploading file: {}, size: {}", command.originalName(), ByteSizeFormatter.format(command.size()));
 
-    // 1. 파일 타입 감지
-    FileType fileType = fileTypeDetector.detect(command.originalName(), command.contentType());
+    // 1. contentType 정규화 (잘못된 형식 방어)
+    String safeContentType = fileTypeDetector.safeContentType(command.contentType(), command.originalName());
 
-    // 2. 파일 크기 검증
+    // 2. 파일 타입 감지
+    FileType fileType = fileTypeDetector.detect(command.originalName(), safeContentType);
+
+    // 3. 파일 크기 검증
     validateFileSize(command.originalName(), command.size());
 
-    // 3. 파일 타입 검증
+    // 4. 파일 타입 검증
     validateFileType(command.originalName(), fileType);
 
-    // 4. 고유 파일명 생성
+    // 5. 고유 파일명 생성
     UUID fileId = UUID.randomUUID();
     String extension = fileTypeDetector.extractExtension(command.originalName());
     String storedFileName = extension.isEmpty() ? fileId.toString() : fileId + "." + extension;
 
-    // 5. 파일 저장
+    // 6. 파일 저장
     String storagePath = storage.save(storedFileName, command.inputStream(), command.size());
     log.debug("File saved to: {}", storagePath);
 
-    // 6. 메타데이터 생성
+    // 7. 메타데이터 생성
     FileMetadata metadata = new FileMetadata(
         fileId,
         command.originalName(),
         fileType,
-        command.contentType(),
+        safeContentType,
         command.size(),
         storagePath,
         null,
@@ -224,7 +230,8 @@ public class FileUploadService implements UploadFileUseCase {
    */
   private void validateFileSize(String fileName, long size) {
     if (maxFileSize > 0 && size > maxFileSize) {
-      log.warn("File size exceeded: {} ({} > {})", fileName, formatSize(size), formatSize(maxFileSize));
+      log.warn("File size exceeded: {} ({} > {})", fileName,
+          ByteSizeFormatter.format(size), ByteSizeFormatter.format(maxFileSize));
       throw new FileSizeExceededException(fileName, size, maxFileSize);
     }
   }
@@ -286,26 +293,12 @@ public class FileUploadService implements UploadFileUseCase {
       log.debug("Thumbnail generated: {}", thumbnailPath);
       return metadata.withThumbnailPath(thumbnailPath);
 
-    } catch (Exception e) {
-      log.warn("Failed to generate thumbnail for file: {}", fileId, e);
+    } catch (ThumbnailGenerationException | StorageException e) {
+      // 도메인 예외만 silent fail — 업로드 자체는 성공시킴
+      // 그 외 RuntimeException은 위로 전파 (버그성 예외 표면화)
+      log.warn("Failed to generate thumbnail for file {} ({}): {}",
+          fileId, e.getClass().getSimpleName(), e.getMessage(), e);
       return metadata;
-    }
-  }
-
-  // ==================== 유틸리티 ====================
-
-  /**
-   * 바이트 크기를 포맷합니다.
-   */
-  private static String formatSize(long bytes) {
-    if (bytes < 1024) {
-      return bytes + " B";
-    } else if (bytes < 1024 * 1024) {
-      return String.format("%.1f KB", bytes / 1024.0);
-    } else if (bytes < 1024L * 1024 * 1024) {
-      return String.format("%.1f MB", bytes / (1024.0 * 1024));
-    } else {
-      return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
     }
   }
 

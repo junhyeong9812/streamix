@@ -3,6 +3,7 @@ package io.github.junhyeong9812.streamix.starter.adapter.out.persistence;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -174,9 +175,14 @@ public interface StreamingSessionRepository extends JpaRepository<StreamingSessi
   /**
    * 오래된 세션을 삭제합니다 (정리용).
    *
+   * <p>{@code @Modifying(clearAutomatically = true)}로 영속성 컨텍스트를 자동 clear하여,
+   * 같은 트랜잭션에서 stale 엔티티를 조회하지 않도록 합니다.
+   * 호출자에 {@code @Transactional}이 필요합니다.</p>
+   *
    * @param before 기준 시각 (이 시각 이전의 세션 삭제)
    * @return 삭제된 세션 수
    */
+  @Modifying(clearAutomatically = true)
   @Query("DELETE FROM StreamingSessionEntity s WHERE s.startedAt < :before")
   int deleteByStartedAtBefore(@Param("before") LocalDateTime before);
 }

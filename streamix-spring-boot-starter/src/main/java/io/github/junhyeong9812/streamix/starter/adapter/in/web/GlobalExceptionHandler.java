@@ -3,12 +3,15 @@ package io.github.junhyeong9812.streamix.starter.adapter.in.web;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileNotFoundException;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileSizeExceededException;
 import io.github.junhyeong9812.streamix.core.domain.exception.InvalidFileTypeException;
+import io.github.junhyeong9812.streamix.core.domain.exception.RangeNotSatisfiableException;
 import io.github.junhyeong9812.streamix.core.domain.exception.StorageException;
 import io.github.junhyeong9812.streamix.core.domain.exception.ThumbnailGenerationException;
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
 import io.github.junhyeong9812.streamix.starter.adapter.in.web.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -135,7 +138,9 @@ public class GlobalExceptionHandler {
       HttpServletRequest request
   ) {
     log.warn("File size exceeded: {} (actual={}, max={})",
-        ex.getFileName(), formatSize(ex.getActualSize()), formatSize(ex.getMaxSize()));
+        ex.getFileName(),
+        ByteSizeFormatter.format(ex.getActualSize()),
+        ByteSizeFormatter.format(ex.getMaxSize()));
 
     ErrorResponse response = ErrorResponse.of(
         413,
@@ -253,6 +258,36 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * RangeNotSatisfiableException 처리 (416 Range Not Satisfiable).
+   *
+   * <p>RFC 7233 §4.4에 따라 {@code Content-Range: bytes &#42;/{fileSize}} 헤더를 포함합니다.</p>
+   *
+   * @param ex      발생한 예외
+   * @param request HTTP 요청
+   * @return 416 에러 응답
+   * @since 2.0.1
+   */
+  @ExceptionHandler(RangeNotSatisfiableException.class)
+  public ResponseEntity<ErrorResponse> handleRangeNotSatisfiable(
+      RangeNotSatisfiableException ex,
+      HttpServletRequest request
+  ) {
+    log.warn("Range not satisfiable: {}", ex.getMessage());
+
+    ErrorResponse response = ErrorResponse.of(
+        416,
+        "Range Not Satisfiable",
+        "RANGE_NOT_SATISFIABLE",
+        ex.getMessage(),
+        request.getRequestURI()
+    );
+
+    return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+        .header(HttpHeaders.CONTENT_RANGE, "bytes */" + ex.getFileSize())
+        .body(response);
+  }
+
+  /**
    * 기타 예외 처리 (500 Internal Server Error).
    *
    * <p>예상치 못한 예외가 발생한 경우 catch-all 핸들러입니다.
@@ -278,20 +313,4 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
   }
 
-  // ==================== 유틸리티 ====================
-
-  /**
-   * 바이트 크기를 읽기 좋은 형식으로 포맷합니다.
-   */
-  private static String formatSize(long bytes) {
-    if (bytes < 1024) {
-      return bytes + " B";
-    } else if (bytes < 1024 * 1024) {
-      return String.format("%.1f KB", bytes / 1024.0);
-    } else if (bytes < 1024L * 1024 * 1024) {
-      return String.format("%.1f MB", bytes / (1024.0 * 1024));
-    } else {
-      return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
-    }
-  }
 }

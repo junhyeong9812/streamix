@@ -3,6 +3,7 @@ package io.github.junhyeong9812.streamix.core.application.service;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileNotFoundException;
+import io.github.junhyeong9812.streamix.core.domain.exception.StorageException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -98,7 +100,7 @@ class FileDeleteServiceTest {
       FileMetadata metadata = createMetadata(fileId);
 
       given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
-      doThrow(new RuntimeException("Storage error")).when(storage).delete(anyString());
+      doThrow(new StorageException("Storage error")).when(storage).delete(anyString());
 
       // when - 예외가 발생하지 않음
       deleteService.delete(fileId);
@@ -117,7 +119,7 @@ class FileDeleteServiceTest {
       given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
       // 파일 삭제는 성공, 썸네일 삭제는 실패
       doNothing().when(storage).delete(metadata.storagePath());
-      doThrow(new RuntimeException("Thumbnail delete error"))
+      doThrow(new StorageException("Thumbnail delete error"))
           .when(storage).delete(metadata.thumbnailPath());
 
       // when
@@ -135,12 +137,41 @@ class FileDeleteServiceTest {
       FileMetadata metadata = createMetadataWithThumbnail(fileId);
 
       given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
-      doThrow(new RuntimeException("Storage error")).when(storage).delete(anyString());
+      doThrow(new StorageException("Storage error")).when(storage).delete(anyString());
 
       // when
       deleteService.delete(fileId);
 
       // then
+      verify(metadataRepository).deleteById(fileId);
+    }
+  }
+
+  @Nested
+  @DisplayName("deleteIdempotent 테스트 (P2-23)")
+  class DeleteIdempotentTest {
+
+    @Test
+    @DisplayName("존재하지 않는 ID는 false 반환 (예외 없음)")
+    void returnsFalseWhenNotFound() {
+      UUID fileId = UUID.randomUUID();
+      given(metadataRepository.findById(fileId)).willReturn(Optional.empty());
+
+      boolean result = deleteService.deleteIdempotent(fileId);
+
+      assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("존재하는 ID는 true 반환 + 삭제 수행")
+    void returnsTrueWhenDeleted() {
+      UUID fileId = UUID.randomUUID();
+      given(metadataRepository.findById(fileId))
+          .willReturn(Optional.of(createMetadata(fileId)));
+
+      boolean result = deleteService.deleteIdempotent(fileId);
+
+      assertThat(result).isTrue();
       verify(metadataRepository).deleteById(fileId);
     }
   }

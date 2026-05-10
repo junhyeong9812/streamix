@@ -73,7 +73,7 @@
                     th:text="${file.type}"></span>
             </td>
             <td>
-              <span th:text="${#numbers.formatDecimal(file.size / 1024 / 1024, 1, 2)} + ' MB'"></span>
+              <span th:text="${file.formattedSize}">0 B</span>
             </td>
             <td>
               <span th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
@@ -146,9 +146,12 @@
             <div class="mb-2 fw-medium">클릭하거나 파일을 드래그하세요</div>
             <div class="text-muted small">
               <span th:if="${@streamixProperties.storage.isAllTypesAllowed()}">모든 파일 지원</span>
-              <span th:if="${!@streamixProperties.storage.isAllTypesAllowed()}"
+              <span th:unless="${@streamixProperties.storage.isAllTypesAllowed()}"
                     th:text="${T(java.lang.String).join(', ', @streamixProperties.storage.allowedTypes)} + ' 파일 지원'"></span>
-              (최대 500MB)
+              <span th:if="${@streamixProperties.storage.maxFileSize > 0}">
+                (최대 <span th:text="${#numbers.formatDecimal(@streamixProperties.storage.maxFileSize / 1024.0 / 1024.0, 1, 0)} + ' MB'"></span>)
+              </span>
+              <span th:unless="${@streamixProperties.storage.maxFileSize > 0}">(크기 제한 없음)</span>
             </div>
           </div>
           <input type="file" id="fileInput" class="d-none">

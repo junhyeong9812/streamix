@@ -4,6 +4,7 @@ import io.github.junhyeong9812.streamix.core.domain.exception.InvalidFileTypeExc
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * 파일 타입을 감지하는 도메인 서비스입니다.
@@ -242,5 +243,46 @@ public class FileTypeDetector {
    */
   public FileType detectAllowingAll(String fileName) {
     return detect(fileName);
+  }
+
+  /**
+   * RFC 6838 호환 MIME 타입 패턴.
+   * 형식: type/subtype[; parameters]
+   */
+  private static final Pattern MIME_TYPE_PATTERN =
+      Pattern.compile("^[\\w.+-]+/[\\w.+-]+(;.*)?$");
+
+  /**
+   * Content-Type 형식이 유효한 MIME 타입인지 확인합니다.
+   *
+   * @param contentType 검증할 contentType
+   * @return 형식이 유효하면 {@code true}
+   * @since 2.0.1
+   */
+  public boolean isValidContentType(String contentType) {
+    return contentType != null
+        && !contentType.isBlank()
+        && MIME_TYPE_PATTERN.matcher(contentType.trim()).matches();
+  }
+
+  /**
+   * 안전한 contentType을 반환합니다.
+   *
+   * <p>입력 contentType이 유효하면 그대로, 아니면 파일명 확장자 기반으로 fallback,
+   * 그것도 안 되면 {@code application/octet-stream}을 반환합니다.</p>
+   *
+   * <p>이 메서드는 사용자 입력 contentType을 신뢰하기 전에 검증/정규화하는 용도입니다.
+   * Spring의 {@code MediaType.parseMediaType()}이 잘못된 형식에서 예외를 던지므로
+   * 이를 사전 방어합니다.</p>
+   *
+   * @param contentType 사용자 입력 contentType
+   * @param fileName    파일명 (확장자 기반 fallback용)
+   * @return 안전한 contentType
+   * @since 2.0.1
+   */
+  public String safeContentType(String contentType, String fileName) {
+    if (isValidContentType(contentType)) return contentType.trim();
+    String ext = extractExtension(fileName);
+    return getContentType(ext);
   }
 }

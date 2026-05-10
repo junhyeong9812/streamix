@@ -4,6 +4,7 @@ import io.github.junhyeong9812.streamix.core.application.port.in.StreamFileUseCa
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileNotFoundException;
+import io.github.junhyeong9812.streamix.core.domain.exception.RangeNotSatisfiableException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
 import io.github.junhyeong9812.streamix.core.domain.model.StreamableFile;
@@ -160,22 +161,71 @@ class FileStreamServiceTest {
     }
 
     @Test
-    @DisplayName("잘못된 Range 형식은 예외가 발생한다")
-    void throwsForInvalidRange() {
+    @DisplayName("잘못된 Range 형식 (start > end)은 RangeNotSatisfiableException")
+    void throwsForInvalidStartGreaterThanEnd() {
       // given
       UUID fileId = UUID.randomUUID();
-      FileMetadata metadata = createMetadata(fileId, 100L);
+      FileMetadata metadata = createMetadata(fileId, 1000L);
 
       given(metadataRepository.findById(fileId)).willReturn(Optional.of(metadata));
 
-      // start > end인 경우
+      // start > end인 경우 → 416
       StreamFileUseCase.StreamCommand command =
           StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=500-100");
 
-      // when & then
       assertThatThrownBy(() -> streamService.stream(command))
-          .isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("Invalid range");
+          .isInstanceOf(RangeNotSatisfiableException.class);
+    }
+
+    @Test
+    @DisplayName("bytes=abc-def 잘못된 숫자 형식은 IllegalArgumentException")
+    void invalidNumberFormat() {
+      UUID fileId = UUID.randomUUID();
+      given(metadataRepository.findById(fileId))
+          .willReturn(Optional.of(createMetadata(fileId, 1000L)));
+      StreamFileUseCase.StreamCommand cmd =
+          StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=abc-def");
+      assertThatThrownBy(() -> streamService.stream(cmd))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Range가 파일 크기 초과 시 RangeNotSatisfiableException")
+    void rangeBeyondFileSize() {
+      UUID fileId = UUID.randomUUID();
+      given(metadataRepository.findById(fileId))
+          .willReturn(Optional.of(createMetadata(fileId, 100L)));
+      StreamFileUseCase.StreamCommand cmd =
+          StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=200-300");
+      assertThatThrownBy(() -> streamService.stream(cmd))
+          .isInstanceOf(RangeNotSatisfiableException.class);
+    }
+
+    @Test
+    @DisplayName("multi-range는 전체 응답으로 fallback")
+    void multiRangeFallsBackToFull() {
+      UUID fileId = UUID.randomUUID();
+      FileMetadata metadata = createMetadata(fileId, 1000L);
+      given(metadataRepository.findById(fileId))
+          .willReturn(Optional.of(metadata));
+      given(storage.load(metadata.storagePath()))
+          .willReturn(new ByteArrayInputStream(new byte[1000]));
+      StreamFileUseCase.StreamCommand cmd =
+          StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=0-100,200-300");
+      StreamableFile result = streamService.stream(cmd);
+      assertThat(result.isPartialContent()).isFalse();
+    }
+
+    @Test
+    @DisplayName("bytes=- 단독은 IllegalArgumentException")
+    void emptyRange() {
+      UUID fileId = UUID.randomUUID();
+      given(metadataRepository.findById(fileId))
+          .willReturn(Optional.of(createMetadata(fileId, 100L)));
+      StreamFileUseCase.StreamCommand cmd =
+          StreamFileUseCase.StreamCommand.withRange(fileId, "bytes=-");
+      assertThatThrownBy(() -> streamService.stream(cmd))
+          .isInstanceOf(IllegalArgumentException.class);
     }
   }
 

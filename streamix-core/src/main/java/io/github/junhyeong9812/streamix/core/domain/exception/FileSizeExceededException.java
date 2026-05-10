@@ -1,5 +1,7 @@
 package io.github.junhyeong9812.streamix.core.domain.exception;
 
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
+
 /**
  * 파일 크기가 허용된 최대 크기를 초과했을 때 발생하는 예외입니다.
  *
@@ -53,8 +55,8 @@ public final class FileSizeExceededException extends StreamixException {
   public FileSizeExceededException(long actualSize, long maxSize) {
     super(String.format(
         "File size %s exceeds maximum allowed size %s",
-        formatSize(actualSize),
-        formatSize(maxSize)
+        ByteSizeFormatter.format(actualSize),
+        ByteSizeFormatter.format(maxSize)
     ));
     this.actualSize = actualSize;
     this.maxSize = maxSize;
@@ -72,8 +74,8 @@ public final class FileSizeExceededException extends StreamixException {
     super(String.format(
         "File '%s' size %s exceeds maximum allowed size %s",
         fileName,
-        formatSize(actualSize),
-        formatSize(maxSize)
+        ByteSizeFormatter.format(actualSize),
+        ByteSizeFormatter.format(maxSize)
     ));
     this.actualSize = actualSize;
     this.maxSize = maxSize;
@@ -116,21 +118,4 @@ public final class FileSizeExceededException extends StreamixException {
     return fileName;
   }
 
-  /**
-   * 바이트 크기를 사람이 읽기 쉬운 형식으로 변환합니다.
-   *
-   * @param bytes 바이트 크기
-   * @return 포맷된 크기 문자열 (예: "15.5 MB")
-   */
-  private static String formatSize(long bytes) {
-    if (bytes < 1024) {
-      return bytes + " B";
-    } else if (bytes < 1024 * 1024) {
-      return String.format("%.1f KB", bytes / 1024.0);
-    } else if (bytes < 1024L * 1024 * 1024) {
-      return String.format("%.1f MB", bytes / (1024.0 * 1024));
-    } else {
-      return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
-    }
-  }
 }

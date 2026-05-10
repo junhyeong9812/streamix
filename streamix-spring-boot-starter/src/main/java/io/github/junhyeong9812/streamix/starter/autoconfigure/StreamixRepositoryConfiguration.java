@@ -3,13 +3,14 @@ package io.github.junhyeong9812.streamix.starter.autoconfigure;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.FileMetadataJpaRepository;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.JpaFileMetadataAdapter;
-import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.StreamingSessionRepository;
 import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
-import io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +38,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * <h2>등록되는 Repository</h2>
  * <ul>
  *   <li>{@link FileMetadataJpaRepository}</li>
- *   <li>{@link StreamingSessionRepository}</li>
+ *   <li>StreamingSessionRepository (StreamixMonitoringConfiguration이 사용)</li>
  * </ul>
  *
  * <h2>자동 등록되는 Bean</h2>
@@ -48,11 +49,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  *     <td>{@link FileMetadataPort}</td>
  *     <td>JPA 기반 메타데이터 저장소 어댑터</td>
  *   </tr>
- *   <tr>
- *     <td>{@link StreamingMonitoringService}</td>
- *     <td>스트리밍 세션 모니터링 서비스</td>
- *   </tr>
  * </table>
+ *
+ * <p>StreamingMonitoringService는 {@link StreamixMonitoringConfiguration}에서 별도 등록.</p>
  *
  * <h2>사용 방법</h2>
  * <p>이 Configuration은 {@code @EnableStreamix} 어노테이션을 통해 자동으로 Import됩니다.
@@ -71,9 +70,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @since 1.0.0
  * @see io.github.junhyeong9812.streamix.starter.annotation.EnableStreamix
  * @see FileMetadataJpaRepository
- * @see StreamingSessionRepository
+ * @see StreamixMonitoringConfiguration
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
+@AutoConfigureAfter({DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @EnableConfigurationProperties(StreamixProperties.class)
 @EntityScan(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
 @EnableJpaRepositories(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
@@ -91,23 +91,26 @@ public class StreamixRepositoryConfiguration {
   }
 
   /**
-   * Streamix 설정 Properties Bean을 명시적 이름으로 등록합니다.
+   * Thymeleaf 템플릿에서 {@code @streamixProperties}로 접근하기 위한
+   * 명명된 Bean을 등록합니다.
    *
-   * <p>Thymeleaf 템플릿에서 {@code @streamixProperties}로 접근할 수 있도록
-   * 'streamixProperties'라는 명시적인 Bean 이름으로 alias를 등록합니다.</p>
+   * <p>{@code @ConfigurationProperties}로 등록된 기본 Bean의 이름은 Spring 내부 명명 규칙
+   * ({@code streamix-io.github.junhyeong9812.streamix.starter.properties.StreamixProperties})에 따라
+   * 길고 복잡합니다. Thymeleaf SpEL의 {@code @beanName} 접근 문법은 짧은 이름이 필요하므로
+   * 이 메서드는 동일 인스턴스를 짧은 이름으로 다시 등록합니다.</p>
    *
-   * <p>{@code @EnableConfigurationProperties}로 등록된 Bean은 내부 명명 규칙을 따르므로,
-   * Thymeleaf에서 접근 가능하도록 동일한 Bean을 'streamixProperties' 이름으로 다시 등록합니다.</p>
+   * <p>{@code @Primary}를 사용하여 다른 Bean이 {@code StreamixProperties}를
+   * 주입받을 때 모호성 없이 이 Bean이 선택되도록 합니다.</p>
    *
-   * <p>{@code @Primary}를 사용하여 여러 Bean이 있을 때 이 Bean이 우선 주입되도록 합니다.</p>
+   * <p><b>v3 마이그레이션 노트</b>: 향후 {@code @ControllerAdvice} +
+   * {@code @ModelAttribute} 패턴으로 대체될 예정입니다.</p>
    *
-   * @param properties @EnableConfigurationProperties로 등록된 Properties
-   * @return 동일한 Properties 인스턴스
+   * @param properties {@code @EnableConfigurationProperties}로 등록된 원본 인스턴스
+   * @return 동일 인스턴스 (Bean 이름 alias)
    */
   @Bean("streamixProperties")
   @Primary
-  public StreamixProperties streamixPropertiesAlias(StreamixProperties properties) {
-    log.info("Registering StreamixProperties bean alias for Thymeleaf access");
+  public StreamixProperties streamixPropertiesNamedBean(StreamixProperties properties) {
     return properties;
   }
 
@@ -128,21 +131,5 @@ public class StreamixRepositoryConfiguration {
   public FileMetadataPort fileMetadataPort(FileMetadataJpaRepository repository) {
     log.info("Creating JpaFileMetadataAdapter for metadata persistence");
     return new JpaFileMetadataAdapter(repository);
-  }
-
-  /**
-   * 스트리밍 모니터링 서비스를 생성합니다.
-   *
-   * <p>스트리밍 세션의 기록, 통계, 분석 기능을 제공합니다.
-   * 대시보드에서 실시간 현황과 통계 데이터를 표시하는 데 사용됩니다.</p>
-   *
-   * @param sessionRepository 세션 리포지토리
-   * @return 모니터링 서비스
-   */
-  @Bean
-  @ConditionalOnMissingBean(StreamingMonitoringService.class)
-  public StreamingMonitoringService streamingMonitoringService(StreamingSessionRepository sessionRepository) {
-    log.info("Creating StreamingMonitoringService for dashboard statistics");
-    return new StreamingMonitoringService(sessionRepository);
   }
 }

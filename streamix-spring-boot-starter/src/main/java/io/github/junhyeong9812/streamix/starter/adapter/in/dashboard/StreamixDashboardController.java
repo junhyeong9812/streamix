@@ -61,6 +61,12 @@ public class StreamixDashboardController {
 
   private static final Logger log = LoggerFactory.getLogger(StreamixDashboardController.class);
 
+  // sidebar 메뉴 활성화 표시용 (page index `currentPage`와 충돌 회피로 currentMenu 사용)
+  private static final String ATTR_CURRENT_MENU = "currentMenu";
+  private static final String MENU_DASHBOARD = "dashboard";
+  private static final String MENU_FILES = "files";
+  private static final String MENU_SESSIONS = "sessions";
+
   private final StreamingMonitoringService monitoringService;
   private final GetFileMetadataUseCase getFileMetadataUseCase;
   private final DeleteFileUseCase deleteFileUseCase;
@@ -101,6 +107,7 @@ public class StreamixDashboardController {
   @GetMapping("${streamix.dashboard.path:/streamix}")
   public String dashboard(Model model) {
     log.debug("Rendering dashboard");
+    model.addAttribute(ATTR_CURRENT_MENU, MENU_DASHBOARD);
 
     // 통계 데이터
     var stats = monitoringService.getDashboardStats();
@@ -147,6 +154,7 @@ public class StreamixDashboardController {
       Model model
   ) {
     log.debug("Rendering file list: page={}, size={}", page, size);
+    model.addAttribute(ATTR_CURRENT_MENU, MENU_FILES);
 
     List<FileMetadata> files = getFileMetadataUseCase.getAll(page, size);
     long totalElements = fileMetadataPort.count();
@@ -175,6 +183,7 @@ public class StreamixDashboardController {
       Model model
   ) {
     log.debug("Rendering file detail: id={}", id);
+    model.addAttribute(ATTR_CURRENT_MENU, MENU_FILES);
 
     FileMetadata file = getFileMetadataUseCase.getById(id);
     model.addAttribute("file", file);
@@ -201,6 +210,7 @@ public class StreamixDashboardController {
       Model model
   ) {
     log.debug("Rendering session list: limit={}", limit);
+    model.addAttribute(ATTR_CURRENT_MENU, MENU_SESSIONS);
 
     var sessions = monitoringService.getRecentSessions(limit);
     model.addAttribute("sessions", sessions);
@@ -229,8 +239,10 @@ public class StreamixDashboardController {
     log.info("Deleting file from dashboard: id={}", id);
 
     try {
-      deleteFileUseCase.delete(id);
-      redirectAttributes.addFlashAttribute("successMessage", "파일이 삭제되었습니다.");
+      // 멱등 모드 — 이미 삭제된 파일을 다시 클릭해도 친절한 안내 (P2-23)
+      boolean removed = deleteFileUseCase.deleteIdempotent(id);
+      String message = removed ? "파일이 삭제되었습니다." : "이미 삭제된 파일입니다.";
+      redirectAttributes.addFlashAttribute("successMessage", message);
     } catch (Exception e) {
       log.error("Failed to delete file: id={}", id, e);
       redirectAttributes.addFlashAttribute("errorMessage", "파일 삭제 실패: " + e.getMessage());

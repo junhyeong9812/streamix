@@ -1,6 +1,5 @@
 package io.github.junhyeong9812.streamix.core.domain.model;
 
-import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -192,18 +191,9 @@ public enum FileType {
     return this == VIDEO || this == AUDIO;
   }
 
-  /**
-   * 브라우저에서 미리보기 가능한지 확인합니다.
-   *
-   * <p>IMAGE, VIDEO, AUDIO, PDF 파일이 미리보기 가능합니다.</p>
-   *
-   * @return 미리보기 가능 시 {@code true}
-   * @since 1.0.7
-   */
-  public boolean isPreviewable() {
-    return this == IMAGE || this == VIDEO || this == AUDIO ||
-        (this == DOCUMENT && extensions.contains("pdf"));
-  }
+  // isPreviewable() 메서드는 v2.0.1에서 삭제됨.
+  // → FileMetadata.isPreviewable()로 이전 (PDF 판별에 contentType 정보가 필요).
+  // 기존 코드: `(this == DOCUMENT && extensions.contains("pdf"))`는 항상 true가 되는 버그였음.
 
   /**
    * 확장자로 FileType을 찾습니다.

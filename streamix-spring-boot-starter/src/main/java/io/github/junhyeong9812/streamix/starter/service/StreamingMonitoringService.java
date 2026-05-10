@@ -1,5 +1,6 @@
 package io.github.junhyeong9812.streamix.starter.service;
 
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.StreamingSessionEntity;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.StreamingSessionRepository;
 import org.slf4j.Logger;
@@ -303,7 +304,7 @@ public class StreamingMonitoringService {
      * @return 예: "1.5 GB", "256 MB"
      */
     public String getTodayBytesFormatted() {
-      return formatBytes(todayBytes);
+      return ByteSizeFormatter.format(todayBytes);
     }
 
     /**
@@ -313,7 +314,7 @@ public class StreamingMonitoringService {
      * @return 예: "10.2 TB", "1.5 GB"
      */
     public String getMonthBytesFormatted() {
-      return formatBytes(monthBytes);
+      return ByteSizeFormatter.format(monthBytes);
     }
 
     /**
@@ -323,7 +324,7 @@ public class StreamingMonitoringService {
      * @return 예: "10.2 TB", "1.5 GB"
      */
     public String getTotalBytesFormatted() {
-      return formatBytes(totalBytes);
+      return ByteSizeFormatter.format(totalBytes);
     }
 
     /**
@@ -384,19 +385,7 @@ public class StreamingMonitoringService {
 
     // ==================== 포맷팅 유틸리티 ====================
 
-    /**
-     * 바이트 수를 읽기 쉬운 형식으로 변환합니다.
-     *
-     * @param bytes 바이트 수
-     * @return 포맷된 문자열 (예: "1.5 GB")
-     */
-    private String formatBytes(long bytes) {
-      if (bytes < 1024) return bytes + " B";
-      if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
-      if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
-      if (bytes < 1024L * 1024 * 1024 * 1024) return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
-      return String.format("%.1f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
-    }
+    // formatBytes는 ByteSizeFormatter.format()로 위임됨 (P2-13)
 
     /**
      * 밀리초를 읽기 쉬운 시간 형식으로 변환합니다.
@@ -444,7 +433,7 @@ public class StreamingMonitoringService {
      * @return 예: "1.5 GB", "256 MB"
      */
     public String getTotalBytesSentFormatted() {
-      return formatBytes(totalBytesSent);
+      return ByteSizeFormatter.format(totalBytesSent);
     }
 
     /**
@@ -458,19 +447,7 @@ public class StreamingMonitoringService {
       return getTotalBytesSentFormatted();
     }
 
-    /**
-     * 바이트 수를 읽기 쉬운 형식으로 변환합니다.
-     *
-     * @param bytes 바이트 수
-     * @return 포맷된 문자열 (예: "1.5 GB")
-     */
-    private String formatBytes(long bytes) {
-      if (bytes < 1024) return bytes + " B";
-      if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
-      if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
-      if (bytes < 1024L * 1024 * 1024 * 1024) return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
-      return String.format("%.1f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
-    }
+    // formatBytes는 ByteSizeFormatter.format()로 위임됨 (P2-13)
   }
 
   /**

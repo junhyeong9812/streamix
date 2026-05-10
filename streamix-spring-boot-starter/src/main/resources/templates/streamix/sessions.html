@@ -182,7 +182,7 @@
                                               th:text="${session.fileId}" th:title="${session.fileId}"></span>
                 </td>
                 <td>
-                  <span th:text="${#numbers.formatDecimal(session.bytesSent / 1024 / 1024, 1, 2)} + ' MB'"></span>
+                  <span th:text="${session.bytesSentFormatted}">0 B</span>
                 </td>
                 <td>
                                         <span th:if="${session.durationMs != null}"

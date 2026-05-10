@@ -5,6 +5,7 @@ import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPo
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileSizeExceededException;
 import io.github.junhyeong9812.streamix.core.domain.exception.InvalidFileTypeException;
+import io.github.junhyeong9812.streamix.core.domain.exception.ThumbnailGenerationException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import io.github.junhyeong9812.streamix.core.domain.model.FileType;
 import io.github.junhyeong9812.streamix.core.domain.model.UploadResult;
@@ -231,7 +232,7 @@ class FileUploadServiceTest {
           .willReturn("/storage/photo.png");
       given(thumbnailService.supports(FileType.IMAGE)).willReturn(true);
       given(thumbnailService.generate(any(), anyString(), anyInt(), anyInt()))
-          .willThrow(new RuntimeException("Skip thumbnail"));
+          .willThrow(new ThumbnailGenerationException("Skip thumbnail"));
       given(metadataRepository.save(any(FileMetadata.class)))
           .willAnswer(inv -> inv.getArgument(0));
 
@@ -502,7 +503,7 @@ class FileUploadServiceTest {
           .willReturn("/storage/test.jpg");
       given(thumbnailService.supports(FileType.IMAGE)).willReturn(true);
       given(thumbnailService.generate(any(), anyString(), anyInt(), anyInt()))
-          .willThrow(new RuntimeException("Thumbnail generation failed"));
+          .willThrow(new ThumbnailGenerationException("Thumbnail generation failed"));
       given(metadataRepository.save(any(FileMetadata.class)))
           .willAnswer(inv -> inv.getArgument(0));
 

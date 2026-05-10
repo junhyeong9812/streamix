@@ -71,7 +71,7 @@ class LocalFileStorageAdapterTest {
       // when & then
       assertThatThrownBy(() -> adapter.save("../../../etc/passwd", inputStream, content.length))
           .isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("Invalid file path");
+          .hasMessageContaining("Invalid storage path");
     }
   }
 
@@ -98,8 +98,16 @@ class LocalFileStorageAdapterTest {
     @Test
     @DisplayName("존재하지 않는 파일은 예외가 발생한다")
     void throwsWhenFileNotFound() {
-      assertThatThrownBy(() -> adapter.load("/nonexistent/file.txt"))
+      Path nonExistent = tempDir.resolve("nonexistent.txt");
+      assertThatThrownBy(() -> adapter.load(nonExistent.toString()))
           .isInstanceOf(FileNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("basePath 외부 경로는 IllegalArgumentException")
+    void rejectsPathOutsideBaseDir() {
+      assertThatThrownBy(() -> adapter.load("/etc/passwd"))
+          .isInstanceOf(IllegalArgumentException.class);
     }
   }
 
@@ -161,8 +169,16 @@ class LocalFileStorageAdapterTest {
     @Test
     @DisplayName("존재하지 않는 파일은 예외가 발생한다")
     void throwsWhenFileNotFound() {
-      assertThatThrownBy(() -> adapter.loadPartial("/nonexistent/file.txt", 0, 10))
+      Path nonExistent = tempDir.resolve("nonexistent.txt");
+      assertThatThrownBy(() -> adapter.loadPartial(nonExistent.toString(), 0, 10))
           .isInstanceOf(FileNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("basePath 외부 경로는 IllegalArgumentException")
+    void rejectsPathOutsideBaseDir() {
+      assertThatThrownBy(() -> adapter.loadPartial("/etc/passwd", 0, 100))
+          .isInstanceOf(IllegalArgumentException.class);
     }
   }
 
@@ -189,7 +205,15 @@ class LocalFileStorageAdapterTest {
     @DisplayName("존재하지 않는 파일 삭제는 예외가 발생하지 않는다")
     void doesNotThrowWhenFileNotExists() {
       // when & then - no exception
-      adapter.delete("/nonexistent/file.txt");
+      Path nonExistent = tempDir.resolve("nonexistent.txt");
+      adapter.delete(nonExistent.toString());
+    }
+
+    @Test
+    @DisplayName("basePath 외부 경로 삭제는 IllegalArgumentException")
+    void rejectsPathOutsideBaseDir() {
+      assertThatThrownBy(() -> adapter.delete("/etc/passwd"))
+          .isInstanceOf(IllegalArgumentException.class);
     }
   }
 
@@ -211,7 +235,14 @@ class LocalFileStorageAdapterTest {
     @Test
     @DisplayName("파일이 없으면 false를 반환한다")
     void returnsFalseWhenNotExists() {
-      assertThat(adapter.exists("/nonexistent/file.txt")).isFalse();
+      Path nonExistent = tempDir.resolve("nonexistent.txt");
+      assertThat(adapter.exists(nonExistent.toString())).isFalse();
+    }
+
+    @Test
+    @DisplayName("basePath 외부 경로는 false (예외 없이)")
+    void returnsFalseForPathOutsideBaseDir() {
+      assertThat(adapter.exists("/etc/passwd")).isFalse();
     }
   }
 
@@ -237,8 +268,16 @@ class LocalFileStorageAdapterTest {
     @Test
     @DisplayName("존재하지 않는 파일은 예외가 발생한다")
     void throwsWhenFileNotFound() {
-      assertThatThrownBy(() -> adapter.getSize("/nonexistent/file.txt"))
+      Path nonExistent = tempDir.resolve("nonexistent.txt");
+      assertThatThrownBy(() -> adapter.getSize(nonExistent.toString()))
           .isInstanceOf(FileNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("basePath 외부 경로는 IllegalArgumentException")
+    void rejectsPathOutsideBaseDir() {
+      assertThatThrownBy(() -> adapter.getSize("/etc/passwd"))
+          .isInstanceOf(IllegalArgumentException.class);
     }
   }
 

@@ -1,5 +1,6 @@
 package io.github.junhyeong9812.streamix.starter.adapter.out.persistence;
 
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -294,6 +295,17 @@ public class StreamingSessionEntity {
   /** @return 전송 바이트 수 */
   public long getBytesSent() {
     return bytesSent;
+  }
+
+  /**
+   * 전송 바이트 수를 사람이 읽기 쉬운 형식으로 반환합니다.
+   * Thymeleaf {@code ${session.bytesSentFormatted}} 접근용입니다.
+   *
+   * @return 예: "1.5 GB", "256 MB", "10 KB"
+   * @since 2.0.1
+   */
+  public String getBytesSentFormatted() {
+    return ByteSizeFormatter.format(bytesSent);
   }
 
   /** @return 지속 시간(ms) */

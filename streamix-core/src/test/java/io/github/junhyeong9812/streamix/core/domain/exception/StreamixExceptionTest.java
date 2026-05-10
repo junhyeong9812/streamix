@@ -29,6 +29,8 @@ class StreamixExceptionTest {
           .isInstanceOf(StreamixException.class);
       assertThat(new FileSizeExceededException(100L, 50L))
           .isInstanceOf(StreamixException.class);
+      assertThat(new RangeNotSatisfiableException(1024L))
+          .isInstanceOf(StreamixException.class);
     }
 
     @Test

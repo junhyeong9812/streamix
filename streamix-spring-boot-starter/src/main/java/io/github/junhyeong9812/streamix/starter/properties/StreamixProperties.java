@@ -2,6 +2,7 @@ package io.github.junhyeong9812.streamix.starter.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -143,17 +144,25 @@ public record StreamixProperties(
     /**
      * 절대 경로로 변환된 저장소 경로를 반환합니다.
      *
-     * <p>상대 경로인 경우 현재 작업 디렉토리({@code user.dir})를 기준으로 절대 경로를 생성합니다.
-     * 절대 경로이거나 Windows 드라이브 문자가 포함된 경우 그대로 반환합니다.</p>
+     * <p>{@link Path#isAbsolute()}로 OS별 정확한 절대 경로 판별을 수행합니다:</p>
+     * <ul>
+     *   <li>Unix/macOS: {@code /}로 시작</li>
+     *   <li>Windows: {@code C:\}, {@code \\server\share} 등</li>
+     * </ul>
      *
-     * @return 절대 경로로 변환된 저장소 경로
+     * <p>상대 경로는 {@code System.getProperty("user.dir")} 기준으로 결합 후 normalize됩니다.</p>
+     *
+     * @return 절대 경로 (normalized)
      */
     public String getResolvedBasePath() {
-      // 이미 절대 경로이거나 Windows 드라이브 문자 포함 시 그대로 반환
-      if (basePath.startsWith("/") || basePath.contains(":")) {
-        return basePath;
+      Path path = Path.of(basePath);
+      if (path.isAbsolute()) {
+        return path.normalize().toString();
       }
-      return System.getProperty("user.dir") + "/" + basePath;
+      return Path.of(System.getProperty("user.dir"))
+          .resolve(path)
+          .normalize()
+          .toString();
     }
 
     /**

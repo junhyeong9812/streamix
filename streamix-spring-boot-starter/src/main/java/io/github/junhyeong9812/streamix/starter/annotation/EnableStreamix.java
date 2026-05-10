@@ -6,6 +6,8 @@ import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixMonitoring
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixRepositoryConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixThumbnailConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixWebConfiguration;
+// 주의: StreamixJpaConfiguration는 v2.0.1에서 삭제됨.
+// StreamixRepositoryConfiguration이 같은 책임을 수행함.
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;

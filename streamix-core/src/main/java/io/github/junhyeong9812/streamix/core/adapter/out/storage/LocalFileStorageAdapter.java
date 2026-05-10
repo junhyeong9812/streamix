@@ -134,11 +134,7 @@ public class LocalFileStorageAdapter implements FileStoragePort {
    */
   @Override
   public InputStream load(String storagePath) {
-//    Path filePath = Path.of(storagePath);
-    // 상대 경로면 basePath 기준으로 해석
-    Path filePath = storagePath.startsWith("/")
-        ? Path.of(storagePath)
-        : basePath.resolve(storagePath);
+    Path filePath = resolveAndValidatePath(storagePath);
 
     if (!Files.exists(filePath)) {
       throw new FileNotFoundException(storagePath);
@@ -158,7 +154,7 @@ public class LocalFileStorageAdapter implements FileStoragePort {
    */
   @Override
   public InputStream loadPartial(String storagePath, long start, long end) {
-    Path filePath = Path.of(storagePath);
+    Path filePath = resolveAndValidatePath(storagePath);
 
     if (!Files.exists(filePath)) {
       throw new FileNotFoundException(storagePath);
@@ -178,7 +174,7 @@ public class LocalFileStorageAdapter implements FileStoragePort {
    */
   @Override
   public void delete(String storagePath) {
-    Path filePath = Path.of(storagePath);
+    Path filePath = resolveAndValidatePath(storagePath);
 
     try {
       if (Files.exists(filePath)) {
@@ -195,7 +191,12 @@ public class LocalFileStorageAdapter implements FileStoragePort {
    */
   @Override
   public boolean exists(String storagePath) {
-    return Files.exists(Path.of(storagePath));
+    try {
+      return Files.exists(resolveAndValidatePath(storagePath));
+    } catch (IllegalArgumentException e) {
+      // basePath 외부 경로는 존재하지 않는 것으로 간주
+      return false;
+    }
   }
 
   /**
@@ -203,7 +204,7 @@ public class LocalFileStorageAdapter implements FileStoragePort {
    */
   @Override
   public long getSize(String storagePath) {
-    Path filePath = Path.of(storagePath);
+    Path filePath = resolveAndValidatePath(storagePath);
 
     if (!Files.exists(filePath)) {
       throw new FileNotFoundException(storagePath);
@@ -217,23 +218,47 @@ public class LocalFileStorageAdapter implements FileStoragePort {
   }
 
   /**
-   * 경로를 검증하고 절대 경로로 해석합니다.
+   * 입력 path를 검증하고 basePath 기준 절대 경로로 정규화합니다.
    *
-   * <p>Path Traversal 공격을 방지합니다.</p>
+   * <p>다음 동작을 보장합니다:</p>
+   * <ul>
+   *   <li>상대 경로 → basePath와 결합하여 정규화</li>
+   *   <li>절대 경로 → 그대로 정규화</li>
+   *   <li>결과가 basePath 외부면 {@link IllegalArgumentException}</li>
+   * </ul>
    *
-   * @param fileName 파일명 (경로 포함 가능)
-   * @return 검증된 절대 경로
-   * @throws IllegalArgumentException 베이스 디렉토리 외부로의 접근 시도 시
+   * <p>이 메서드는 모든 파일 시스템 작업의 path 검증 진입점입니다.
+   * Path Traversal 공격(예: {@code ../../etc/passwd})과
+   * 메타데이터 변조를 통한 임의 파일 접근을 방어합니다.</p>
+   *
+   * @param path 검증할 path (상대/절대)
+   * @return basePath 내부의 정규화된 절대 경로
+   * @throws IllegalArgumentException basePath 외부로 접근 시도 시
    */
-  private Path resolveAndValidatePath(String fileName) {
-    Path resolved = basePath.resolve(fileName).normalize();
-
-    // Path Traversal 공격 방지
-    if (!resolved.startsWith(basePath)) {
-      throw new IllegalArgumentException("Invalid file path: " + fileName);
+  private Path resolveAndValidatePath(String path) {
+    if (path == null || path.isBlank()) {
+      throw new IllegalArgumentException("Invalid storage path");
     }
+    Path resolved = isAbsolutePath(path)
+        ? Path.of(path).normalize()
+        : basePath.resolve(path).normalize();
 
+    if (!resolved.startsWith(basePath)) {
+      log.warn("Rejected path outside base directory: {}", path);
+      throw new IllegalArgumentException("Invalid storage path");
+    }
     return resolved;
+  }
+
+  /**
+   * Unix(/) 또는 Windows(C:\) 절대 경로 여부를 판별합니다.
+   */
+  private static boolean isAbsolutePath(String path) {
+    if (path.startsWith("/")) return true;
+    return path.length() >= 3
+        && Character.isLetter(path.charAt(0))
+        && path.charAt(1) == ':'
+        && (path.charAt(2) == '/' || path.charAt(2) == '\\');
   }
 
   /**

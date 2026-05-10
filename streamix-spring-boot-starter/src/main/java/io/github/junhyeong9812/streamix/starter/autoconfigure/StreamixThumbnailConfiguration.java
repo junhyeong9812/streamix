@@ -5,10 +5,10 @@ import io.github.junhyeong9812.streamix.starter.adapter.out.thumbnail.FFmpegThum
 import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Streamix 썸네일 자동 설정 클래스입니다.
@@ -75,7 +75,7 @@ import org.springframework.context.annotation.Bean;
  * @see FFmpegThumbnailAdapter
  * @see StreamixProperties.Thumbnail
  */
-@AutoConfiguration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "streamix.thumbnail.enabled", havingValue = "true", matchIfMissing = true)
 public class StreamixThumbnailConfiguration {
 

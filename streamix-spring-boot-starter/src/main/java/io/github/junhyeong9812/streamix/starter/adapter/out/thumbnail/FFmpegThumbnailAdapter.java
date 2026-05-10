@@ -9,9 +9,15 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * FFmpeg 기반 비디오 썸네일 생성 어댑터입니다.
@@ -212,70 +218,81 @@ public class FFmpegThumbnailAdapter implements ThumbnailGeneratorPort {
   public byte[] generateFromPath(String sourcePath, int width, int height) {
     log.debug("Generating video thumbnail: path={}, size={}x{}", sourcePath, width, height);
 
-    // FFmpeg 명령어 구성
     ProcessBuilder processBuilder = new ProcessBuilder(
         ffmpegPath,
-        "-i", sourcePath,                    // 입력 파일
-        "-ss", SEEK_POSITION,                // 탐색 위치 (1초)
-        "-vframes", "1",                     // 1프레임만 추출
-        "-vf", buildScaleFilter(width, height), // 크기 조정
-        "-q:v", "2",                         // JPEG 품질 (1-31, 낮을수록 고품질)
-        "-f", "image2pipe",                  // 파이프로 출력
-        "-vcodec", "mjpeg",                  // MJPEG 코덱
-        "-"                                  // stdout으로 출력
+        "-i", sourcePath,
+        "-ss", SEEK_POSITION,
+        "-vframes", "1",
+        "-vf", buildScaleFilter(width, height),
+        "-q:v", "2",
+        "-f", "image2pipe",
+        "-vcodec", "mjpeg",
+        "-"
     );
-
     processBuilder.redirectErrorStream(false);
 
+    Process process = null;
     try {
-      Process process = processBuilder.start();
+      process = processBuilder.start();
 
-      // stdout에서 이미지 데이터 읽기
-      byte[] thumbnailData;
-      try (InputStream stdout = process.getInputStream();
-          ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      // stdout / stderr를 별도 가상 스레드로 동시 drain — pipe deadlock 방지
+      try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        Process p = process;
+        Future<byte[]> stdoutFuture = executor.submit(() -> drainStream(p.getInputStream()));
+        Future<byte[]> stderrFuture = executor.submit(() -> drainStream(p.getErrorStream()));
 
-        byte[] buffer = new byte[8192];
-        int bytesRead;
-        while ((bytesRead = stdout.read(buffer)) != -1) {
-          baos.write(buffer, 0, bytesRead);
+        boolean finished = process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        if (!finished) {
+          process.destroyForcibly();
+          throw new ThumbnailGenerationException(
+              "FFmpeg process timed out after " + PROCESS_TIMEOUT_SECONDS + " seconds"
+          );
         }
-        thumbnailData = baos.toByteArray();
+
+        byte[] thumbnailData = stdoutFuture.get(5, TimeUnit.SECONDS);
+        byte[] errorBytes = stderrFuture.get(5, TimeUnit.SECONDS);
+
+        int exitCode = process.exitValue();
+        if (exitCode != 0) {
+          String errorMessage = truncate(new String(errorBytes), 500);
+          log.error("FFmpeg failed with exit code {}: {}", exitCode, errorMessage);
+          throw new ThumbnailGenerationException(
+              "FFmpeg failed with exit code " + exitCode + ": " + errorMessage
+          );
+        }
+
+        if (thumbnailData.length == 0) {
+          throw new ThumbnailGenerationException("FFmpeg produced empty output");
+        }
+
+        log.debug("Video thumbnail generated: {} bytes", thumbnailData.length);
+        return thumbnailData;
       }
-
-      // 프로세스 완료 대기
-      boolean finished = process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-      if (!finished) {
-        process.destroyForcibly();
-        throw new ThumbnailGenerationException(
-            "FFmpeg process timed out after " + PROCESS_TIMEOUT_SECONDS + " seconds"
-        );
-      }
-
-      int exitCode = process.exitValue();
-      if (exitCode != 0) {
-        // stderr 읽기 (디버깅용)
-        String errorMessage = readErrorStream(process);
-        log.error("FFmpeg failed with exit code {}: {}", exitCode, errorMessage);
-        throw new ThumbnailGenerationException(
-            "FFmpeg failed with exit code " + exitCode + ": " + errorMessage
-        );
-      }
-
-      if (thumbnailData.length == 0) {
-        throw new ThumbnailGenerationException("FFmpeg produced empty output");
-      }
-
-      log.debug("Video thumbnail generated: {} bytes", thumbnailData.length);
-      return thumbnailData;
-
     } catch (IOException e) {
       throw new ThumbnailGenerationException("Failed to execute FFmpeg: " + e.getMessage(), e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+      if (process != null) process.destroyForcibly();
       throw new ThumbnailGenerationException("FFmpeg process interrupted", e);
+    } catch (ExecutionException | TimeoutException e) {
+      if (process != null) process.destroyForcibly();
+      throw new ThumbnailGenerationException("FFmpeg stream drain failed: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * 입력 스트림을 끝까지 읽어 byte 배열로 반환합니다. 닫기까지 책임집니다.
+   */
+  private static byte[] drainStream(InputStream in) throws IOException {
+    try (in; ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      in.transferTo(baos);
+      return baos.toByteArray();
+    }
+  }
+
+  private static String truncate(String s, int max) {
+    if (s == null) return "";
+    return s.length() > max ? s.substring(0, max) + "..." : s;
   }
 
   /**
@@ -294,34 +311,6 @@ public class FFmpegThumbnailAdapter implements ThumbnailGeneratorPort {
   }
 
   /**
-   * 프로세스의 stderr를 읽어 반환합니다.
-   *
-   * @param process FFmpeg 프로세스
-   * @return stderr 내용 (최대 500자)
-   */
-  private String readErrorStream(Process process) {
-    try (InputStream stderr = process.getErrorStream();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-
-      byte[] buffer = new byte[1024];
-      int bytesRead;
-      while ((bytesRead = stderr.read(buffer)) != -1) {
-        baos.write(buffer, 0, bytesRead);
-      }
-
-      String error = baos.toString();
-      // 너무 길면 잘라냄
-      if (error.length() > 500) {
-        error = error.substring(0, 500) + "...";
-      }
-      return error;
-
-    } catch (IOException e) {
-      return "Failed to read error stream: " + e.getMessage();
-    }
-  }
-
-  /**
    * FFmpeg가 시스템에 설치되어 있는지 확인합니다.
    *
    * <p>Bean 초기화 시 호출하여 사전 검증할 수 있습니다.</p>
@@ -331,18 +320,22 @@ public class FFmpegThumbnailAdapter implements ThumbnailGeneratorPort {
   public boolean isFFmpegAvailable() {
     try {
       ProcessBuilder pb = new ProcessBuilder(ffmpegPath, "-version");
+      pb.redirectErrorStream(true);   // -version 출력은 작아 안전하게 merge
       Process process = pb.start();
+      // 출력은 폐기 — pipe 버퍼 차지 방지
+      process.getInputStream().transferTo(OutputStream.nullOutputStream());
       boolean finished = process.waitFor(5, TimeUnit.SECONDS);
-
       if (!finished) {
         process.destroyForcibly();
         return false;
       }
-
       return process.exitValue() == 0;
-
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       log.warn("FFmpeg not available at path '{}': {}", ffmpegPath, e.getMessage());
+      return false;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.warn("FFmpeg availability check interrupted: {}", e.getMessage());
       return false;
     }
   }

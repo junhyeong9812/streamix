@@ -8,13 +8,14 @@ import io.github.junhyeong9812.streamix.starter.properties.StreamixProperties;
 import io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -68,7 +69,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @see StreamixDashboardController
  * @see StreamingMonitoringService
  */
-@AutoConfiguration
+@Configuration(proxyBeanMethods = false)
+@AutoConfigureAfter(StreamixMonitoringConfiguration.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(WebMvcConfigurer.class)
 @ConditionalOnProperty(name = "streamix.dashboard.enabled", havingValue = "true", matchIfMissing = true)

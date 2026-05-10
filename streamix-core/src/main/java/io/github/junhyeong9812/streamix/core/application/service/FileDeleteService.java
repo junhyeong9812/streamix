@@ -4,6 +4,7 @@ import io.github.junhyeong9812.streamix.core.application.port.in.DeleteFileUseCa
 import io.github.junhyeong9812.streamix.core.application.port.out.FileMetadataPort;
 import io.github.junhyeong9812.streamix.core.application.port.out.FileStoragePort;
 import io.github.junhyeong9812.streamix.core.domain.exception.FileNotFoundException;
+import io.github.junhyeong9812.streamix.core.domain.exception.StorageException;
 import io.github.junhyeong9812.streamix.core.domain.model.FileMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,28 +63,42 @@ public class FileDeleteService implements DeleteFileUseCase {
    * 파일 삭제 실패는 로그로 기록되고, 메타데이터는 항상 삭제됩니다.</p>
    */
   @Override
-  public void delete(UUID fileId) {
-    log.info("Deleting file: {}", fileId);
+  public boolean deleteIdempotent(UUID fileId) {
+    log.info("Deleting file (idempotent): {}", fileId);
 
-    // 1. 메타데이터 조회 (존재 확인)
-    FileMetadata metadata = metadataRepository.findById(fileId)
-        .orElseThrow(() -> new FileNotFoundException(fileId));
+    java.util.Optional<FileMetadata> opt = metadataRepository.findById(fileId);
+    if (opt.isEmpty()) {
+      log.debug("File not found, idempotent no-op: {}", fileId);
+      return false;
+    }
 
-    // 2. 실제 파일 삭제
+    FileMetadata metadata = opt.get();
+
+    // 1. 실제 파일 삭제
     deleteFileQuietly(metadata.storagePath(), "file");
 
-    // 3. 썸네일 삭제
+    // 2. 썸네일 삭제
     if (metadata.hasThumbnail()) {
       deleteFileQuietly(metadata.thumbnailPath(), "thumbnail");
     }
 
-    // 4. 메타데이터 삭제
+    // 3. 메타데이터 삭제
     metadataRepository.deleteById(fileId);
-    log.info("File deleted successfully: {}", fileId);
+    log.info("File deleted: {}", fileId);
+    return true;
+  }
+
+  @Override
+  public void delete(UUID fileId) {
+    if (!deleteIdempotent(fileId)) {
+      throw new FileNotFoundException(fileId);
+    }
   }
 
   /**
-   * 파일을 조용히 삭제합니다 (예외 무시).
+   * 파일을 조용히 삭제합니다 (저장소 예외 무시).
+   *
+   * <p>{@link StorageException}만 silent fail — 그 외 예외는 위로 전파.</p>
    *
    * @param path 삭제할 파일 경로
    * @param type 파일 타입 (로깅용)
@@ -92,8 +107,8 @@ public class FileDeleteService implements DeleteFileUseCase {
     try {
       storage.delete(path);
       log.debug("Deleted {}: {}", type, path);
-    } catch (Exception e) {
-      log.warn("Failed to delete {}: {}", type, path, e);
+    } catch (StorageException e) {
+      log.warn("Failed to delete {} at {}: {}", type, path, e.getMessage(), e);
     }
   }
 }

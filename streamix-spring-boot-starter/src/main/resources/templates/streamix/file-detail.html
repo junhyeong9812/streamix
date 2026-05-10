@@ -187,8 +187,7 @@
             </div>
             <div class="file-info-item">
               <div class="file-info-label">파일 크기</div>
-              <div class="file-info-value"
-                   th:text="${#numbers.formatDecimal(file.size / 1024 / 1024, 1, 2)} + ' MB'"></div>
+              <div class="file-info-value" th:text="${file.formattedSize}">0 B</div>
             </div>
             <div class="file-info-item">
               <div class="file-info-label">썸네일</div>

@@ -1,5 +1,7 @@
 package io.github.junhyeong9812.streamix.core.domain.model;
 
+import io.github.junhyeong9812.streamix.core.domain.util.ByteSizeFormatter;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -200,13 +202,21 @@ public record FileMetadata(
   /**
    * 브라우저에서 미리보기 가능한지 확인합니다.
    *
-   * <p>IMAGE, VIDEO, AUDIO, PDF 파일이 미리보기 가능합니다.</p>
+   * <p>미리보기 가능 조건:</p>
+   * <ul>
+   *   <li>IMAGE, VIDEO, AUDIO — 항상 가능</li>
+   *   <li>DOCUMENT — contentType이 {@code application/pdf}일 때만</li>
+   *   <li>ARCHIVE, OTHER — 불가</li>
+   * </ul>
    *
    * @return 미리보기 가능 시 {@code true}
    * @since 1.0.7
    */
   public boolean isPreviewable() {
-    return type.isPreviewable();
+    if (type == FileType.IMAGE || type == FileType.VIDEO || type == FileType.AUDIO) {
+      return true;
+    }
+    return type == FileType.DOCUMENT && "application/pdf".equalsIgnoreCase(contentType);
   }
 
   // ==================== 유틸리티 ====================
@@ -245,15 +255,7 @@ public record FileMetadata(
    * @since 1.0.7
    */
   public String getFormattedSize() {
-    if (size < 1024) {
-      return size + " B";
-    } else if (size < 1024 * 1024) {
-      return String.format("%.1f KB", size / 1024.0);
-    } else if (size < 1024L * 1024 * 1024) {
-      return String.format("%.1f MB", size / (1024.0 * 1024));
-    } else {
-      return String.format("%.2f GB", size / (1024.0 * 1024 * 1024));
-    }
+    return ByteSizeFormatter.format(size);
   }
 
   // ==================== 팩토리 메서드 ====================
