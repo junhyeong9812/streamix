@@ -5,92 +5,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Streamix Dashboard</title>
+  <title layout:title-pattern="$CONTENT_TITLE — Streamix">Streamix</title>
 
-  <!-- Bootstrap 5 CSS (WebJars — starter 내장, 인터넷 차단 환경 대응) -->
-  <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
-  <!-- Bootstrap Icons (WebJars) -->
-  <link th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.css}" rel="stylesheet">
-  <!-- Streamix Dashboard CSS -->
-  <link th:href="@{/streamix/css/dashboard.css}" rel="stylesheet">
+  <script th:inline="none">
+    (function () {
+      try {
+        var stored = localStorage.getItem('streamix.theme');
+        var theme = (stored === 'light' || stored === 'dark') ? stored
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) { /* localStorage 비활성 환경 */ }
+    })();
+  </script>
+
+  <link rel="stylesheet" th:href="@{/streamix/css/streamix.css}">
+  <link rel="preload" as="image" type="image/svg+xml" th:href="@{/streamix/svg/icons.svg}">
 </head>
 <body th:data-api-base-path="${@streamixProperties.api.basePath}"
       th:data-allowed-types="${T(java.lang.String).join(',', @streamixProperties.storage.allowedTypes)}"
-      th:data-max-file-size="${@streamixProperties.storage.maxFileSize}">
+      th:data-max-file-size="${@streamixProperties.storage.maxFileSize}"
+      th:data-streamix-sprite="@{/streamix/svg/icons.svg}">
 
-<!-- 모바일 오버레이 -->
-<div id="sidebarOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-lg-none"
-     style="background: rgba(0,0,0,0.5); z-index: 999; display: none;"></div>
-
-<!-- 모바일 토글 버튼 -->
-<button id="sidebarToggle" class="btn btn-streamix d-lg-none position-fixed"
-        style="top: 1rem; left: 1rem; z-index: 1001;">
-  <i class="bi bi-list"></i>
+<button type="button" class="streamix-mobile-toggle" data-streamix-mobile-toggle aria-label="메뉴 열기">
+  <svg class="streamix-icon" aria-hidden="true">
+    <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-list|"></use>
+  </svg>
 </button>
+<div class="streamix-mobile-overlay" data-streamix-mobile-overlay></div>
 
-<!-- Sidebar -->
-<nav class="sidebar">
-  <a th:href="@{${@streamixProperties.dashboard.path}}" class="brand">
-    <i class="bi bi-play-circle-fill"></i>
-    <span>Streamix</span>
-  </a>
+<div class="streamix-app">
 
-  <ul class="nav flex-column mt-3">
-    <li class="nav-item">
-      <a class="nav-link"
-         th:classappend="${currentMenu == 'dashboard' ? 'active' : ''}"
+  <aside class="streamix-sidebar" aria-label="주 네비게이션">
+    <div class="streamix-sidebar-mast streamix-fade-in" data-delay="1">
+      <a class="streamix-sidebar-brand" th:href="@{${@streamixProperties.dashboard.path}}">
+        <svg class="streamix-sidebar-brand-mark" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-broadcast-pin|"></use>
+        </svg>
+        <span>Streamix</span>
+      </a>
+      <div class="streamix-sidebar-issue streamix-meta">
+        <span>Media Operations</span>
+        <span aria-hidden="true">·</span>
+        <span class="streamix-mono">v3.0.0</span>
+      </div>
+    </div>
+
+    <nav class="streamix-nav streamix-fade-in" data-delay="2">
+      <a class="streamix-nav-item"
+         th:classappend="${currentMenu == 'dashboard' ? 'is-active' : ''}"
          th:href="@{${@streamixProperties.dashboard.path}}">
-        <i class="bi bi-speedometer2"></i>
+        <svg class="streamix-nav-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-speedometer2|"></use>
+        </svg>
         <span>대시보드</span>
       </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link"
-         th:classappend="${currentMenu == 'files' ? 'active' : ''}"
+      <a class="streamix-nav-item"
+         th:classappend="${currentMenu == 'files' ? 'is-active' : ''}"
          th:href="@{${@streamixProperties.dashboard.path} + '/files'}">
-        <i class="bi bi-folder"></i>
+        <svg class="streamix-nav-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-folder|"></use>
+        </svg>
         <span>파일 관리</span>
       </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link"
-         th:classappend="${currentMenu == 'sessions' ? 'active' : ''}"
+      <a class="streamix-nav-item"
+         th:classappend="${currentMenu == 'sessions' ? 'is-active' : ''}"
          th:href="@{${@streamixProperties.dashboard.path} + '/sessions'}">
-        <i class="bi bi-broadcast"></i>
+        <svg class="streamix-nav-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-broadcast|"></use>
+        </svg>
         <span>스트리밍 세션</span>
       </a>
-    </li>
-  </ul>
+    </nav>
 
-  <div class="sidebar-footer">
-    <div class="d-flex align-items-center gap-2">
-      <i class="bi bi-box"></i>
-      <span>Streamix v2.0.0</span>
+    <div class="streamix-sidebar-foot streamix-fade-in" data-delay="3">
+      <button type="button"
+              class="streamix-btn streamix-btn--ghost streamix-btn--sm"
+              data-streamix-theme-toggle
+              aria-label="테마 변경">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-moon|"></use>
+        </svg>
+        <span data-streamix-theme-label>SYSTEM</span>
+      </button>
     </div>
-  </div>
-</nav>
+  </aside>
 
-<!-- Main Content -->
-<main class="main-content">
-  <!-- Flash Messages -->
-  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="bi bi-check-circle-fill"></i>
-    <span th:text="${successMessage}"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-  <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-    <i class="bi bi-exclamation-triangle-fill"></i>
-    <span th:text="${errorMessage}"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
+  <main class="streamix-main">
+    <div class="streamix-main-inner streamix-fade-in" data-delay="2">
 
-  <!-- Page Content -->
-  <div layout:fragment="content"></div>
-</main>
+      <div th:if="${successMessage}" class="streamix-alert streamix-alert--success" role="status">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-check-circle|"></use>
+        </svg>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="streamix-alert-close" data-streamix-alert-close aria-label="닫기">
+          <svg class="streamix-icon streamix-icon--sm" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-x-lg|"></use>
+          </svg>
+        </button>
+      </div>
+      <div th:if="${errorMessage}" class="streamix-alert streamix-alert--error" role="alert">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-exclamation-triangle|"></use>
+        </svg>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="streamix-alert-close" data-streamix-alert-close aria-label="닫기">
+          <svg class="streamix-icon streamix-icon--sm" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-x-lg|"></use>
+          </svg>
+        </button>
+      </div>
 
-<!-- Bootstrap JS (WebJars) -->
-<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
-<!-- Streamix Dashboard JS -->
-<script th:src="@{/streamix/js/dashboard.js}"></script>
+      <div layout:fragment="content"></div>
+    </div>
+  </main>
+
+</div>
+
+<script type="module" th:src="@{/streamix/js/main.js}"></script>
 </body>
 </html>

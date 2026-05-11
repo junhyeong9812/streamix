@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+
+<th:block th:fragment="fileTypeIcon(typeName)">
+  <svg class="streamix-icon" aria-hidden="true">
+    <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-${typeName == 'VIDEO' ? 'camera-video' : (typeName == 'IMAGE' ? 'image' : (typeName == 'AUDIO' ? 'music-note-beamed' : (typeName == 'DOCUMENT' ? 'file-earmark-text' : (typeName == 'ARCHIVE' ? 'file-earmark-zip' : 'file-earmark'))))}|"></use>
+  </svg>
+</th:block>
+
+<th:block th:fragment="deleteModal(initialName)">
+  <div class="streamix-modal-overlay" id="streamix-delete-modal"
+       data-streamix-modal="delete"
+       role="dialog" aria-modal="true" aria-labelledby="streamix-delete-modal-title">
+    <div class="streamix-modal">
+      <header class="streamix-modal-head">
+        <h2 id="streamix-delete-modal-title" class="streamix-modal-title">파일 삭제</h2>
+        <button type="button" class="streamix-btn streamix-btn--ghost streamix-btn--icon"
+                data-streamix-modal-close aria-label="닫기">
+          <svg class="streamix-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-x-lg|"></use>
+          </svg>
+        </button>
+      </header>
+      <div class="streamix-modal-body">
+        <div class="streamix-modal-confirm">
+          <svg class="streamix-icon streamix-icon--2xl streamix-icon--destructive" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-exclamation-triangle-fill|"></use>
+          </svg>
+          <p class="streamix-modal-confirm-msg">다음 파일을 삭제하시겠습니까?</p>
+          <p class="streamix-modal-confirm-name streamix-mono"
+             data-streamix-delete-name
+             th:text="${initialName} ?: '파일명'">파일명</p>
+          <p class="streamix-meta">이 작업은 되돌릴 수 없습니다</p>
+        </div>
+      </div>
+      <footer class="streamix-modal-foot">
+        <button type="button" class="streamix-btn" data-streamix-modal-close>취소</button>
+        <form data-streamix-delete-form method="post"
+              th:data-base-path="${@streamixProperties.dashboard.path}"
+              class="streamix-form-inline">
+          <button type="submit" class="streamix-btn streamix-btn--danger">
+            <svg class="streamix-icon" aria-hidden="true">
+              <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-trash|"></use>
+            </svg>
+            <span>삭제</span>
+          </button>
+        </form>
+      </footer>
+    </div>
+  </div>
+</th:block>
+
+</body>
+</html>

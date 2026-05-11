@@ -7,235 +7,235 @@
 </head>
 <body>
 <div layout:fragment="content">
-  <!-- Page Header -->
-  <div class="page-header">
-    <h1 class="page-title">대시보드</h1>
-    <p class="page-subtitle">미디어 스트리밍 서버 현황을 확인하세요</p>
-  </div>
 
-  <!-- Stats Cards -->
-  <div class="row g-4 mb-4">
-    <div class="col-sm-6 col-xl-3">
-      <div class="card stat-card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-start justify-content-between">
-            <div>
-              <div class="stat-value" th:text="${totalFiles}">0</div>
-              <div class="stat-label">전체 파일</div>
-            </div>
-            <div class="stat-icon bg-primary-soft">
-              <i class="bi bi-folder"></i>
-            </div>
-          </div>
-        </div>
+  <header class="streamix-mast">
+    <div>
+      <h1 class="streamix-mast-title">Dashboard</h1>
+      <div class="streamix-mast-sub">
+        <span class="streamix-mast-rule" aria-hidden="true"></span>
+        <span class="streamix-meta">Media Operations · Room 04</span>
       </div>
     </div>
-
-    <div class="col-sm-6 col-xl-3">
-      <div class="card stat-card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-start justify-content-between">
-            <div>
-              <div class="stat-value" th:text="${stats?.activeSessions} ?: 0">0</div>
-              <div class="stat-label">활성 세션</div>
-              <span class="stat-change positive" th:if="${stats?.activeSessions > 0}">
-                <i class="bi bi-broadcast"></i> 스트리밍 중
-              </span>
-            </div>
-            <div class="stat-icon bg-success-soft">
-              <i class="bi bi-broadcast"></i>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="streamix-mast-actions">
+      <a th:href="@{${@streamixProperties.dashboard.path} + '/files'}"
+         class="streamix-btn streamix-btn--primary">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-folder|"></use>
+        </svg>
+        <span>파일 관리</span>
+      </a>
     </div>
+  </header>
 
-    <div class="col-sm-6 col-xl-3">
-      <div class="card stat-card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-start justify-content-between">
-            <div>
-              <div class="stat-value" th:text="${stats?.todaySessions} ?: 0">0</div>
-              <div class="stat-label">오늘 스트리밍</div>
-            </div>
-            <div class="stat-icon bg-info-soft">
-              <i class="bi bi-play-circle"></i>
-            </div>
-          </div>
+  <section class="streamix-stat-grid" aria-label="대시보드 요약">
+    <article class="streamix-stat">
+      <div class="streamix-stat-index">01 / TOTAL</div>
+      <div class="streamix-stat-value" th:text="${totalFiles}">0</div>
+      <div class="streamix-stat-rule" aria-hidden="true"></div>
+      <div class="streamix-stat-label">전체 파일</div>
+    </article>
+
+    <article class="streamix-stat">
+      <div class="streamix-stat-index">02 / LIVE</div>
+      <div class="streamix-stat-value" th:text="${stats?.activeSessions} ?: 0">0</div>
+      <div class="streamix-stat-rule" aria-hidden="true"></div>
+      <div class="streamix-stat-label">활성 세션</div>
+      <div th:if="${stats?.activeSessions > 0}" class="streamix-stat-tag">
+        <span class="streamix-pulse" aria-hidden="true"></span>
+        <span>ON AIR</span>
+      </div>
+    </article>
+
+    <article class="streamix-stat">
+      <div class="streamix-stat-index">03 / TODAY</div>
+      <div class="streamix-stat-value" th:text="${stats?.todaySessions} ?: 0">0</div>
+      <div class="streamix-stat-rule" aria-hidden="true"></div>
+      <div class="streamix-stat-label">오늘 스트리밍</div>
+    </article>
+
+    <article class="streamix-stat">
+      <div class="streamix-stat-index">04 / TRANSFER</div>
+      <div class="streamix-stat-value streamix-stat-value--md"
+           th:text="${stats?.todayBytesFormatted} ?: '0 B'">0 B</div>
+      <div class="streamix-stat-rule" aria-hidden="true"></div>
+      <div class="streamix-stat-label">오늘 전송량</div>
+    </article>
+  </section>
+
+  <section class="streamix-grid-2">
+
+    <article class="streamix-card">
+      <header class="streamix-card-head">
+        <div class="streamix-card-head-title">
+          <svg class="streamix-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-clock-history|"></use>
+          </svg>
+          <span>Recent Uploads</span>
+        </div>
+        <a th:href="@{${@streamixProperties.dashboard.path} + '/files'}"
+           class="streamix-btn streamix-btn--ghost streamix-btn--sm">전체 보기</a>
+      </header>
+
+      <div class="streamix-card-body streamix-card-body--flush">
+        <div th:if="${#lists.isEmpty(recentFiles)}" class="streamix-empty">
+          <svg class="streamix-empty-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-folder-x|"></use>
+          </svg>
+          <div class="streamix-empty-title">업로드된 파일이 없습니다</div>
+          <div class="streamix-empty-text">파일 관리에서 새 파일을 업로드하세요.</div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(recentFiles)}" class="streamix-table-wrap">
+          <table class="streamix-table">
+            <thead>
+            <tr>
+              <th scope="col" style="width: 70px;">Preview</th>
+              <th scope="col">Name</th>
+              <th scope="col" style="width: 90px;">Type</th>
+              <th scope="col" style="width: 80px;">Size</th>
+              <th scope="col" style="width: 90px;">Time</th>
+              <th scope="col" style="width: 50px;"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="file, stat : ${recentFiles}">
+              <td>
+                <img th:if="${file.thumbnailPath != null}"
+                     class="streamix-thumb"
+                     th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'}"
+                     alt="">
+                <div th:if="${file.thumbnailPath == null}"
+                     class="streamix-file-icon"
+                     th:classappend="|streamix-file-icon--${#strings.toLowerCase(file.type.name())}|">
+                  <th:block th:replace="~{streamix/fragments :: fileTypeIcon(${file.type.name()})}"></th:block>
+                </div>
+              </td>
+              <td>
+                <div class="streamix-table-name" th:text="${file.originalName}" th:title="${file.originalName}"></div>
+                <div class="streamix-table-id streamix-mono"
+                     th:text="${#strings.abbreviate(file.id.toString(), 24)}"></div>
+              </td>
+              <td>
+                <span class="streamix-badge"
+                      th:classappend="|streamix-badge--${#strings.toLowerCase(file.type.name())}|"
+                      th:text="${file.type}"></span>
+              </td>
+              <td class="streamix-mono" th:text="${file.formattedSize}">0 B</td>
+              <td class="streamix-mono"
+                  th:text="${#temporals.format(file.createdAt, 'MM-dd HH:mm')}"></td>
+              <td>
+                <a class="streamix-btn streamix-btn--ghost streamix-btn--icon"
+                   th:href="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id}}"
+                   title="상세 보기"
+                   aria-label="상세 보기">
+                  <svg class="streamix-icon" aria-hidden="true">
+                    <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-eye|"></use>
+                  </svg>
+                </a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
+    </article>
 
-    <div class="col-sm-6 col-xl-3">
-      <div class="card stat-card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-start justify-content-between">
-            <div>
-              <div class="stat-value" th:text="${stats?.todayBytesFormatted} ?: '0 B'">0 B</div>
-              <div class="stat-label">오늘 전송량</div>
+    <div class="streamix-grid-stack">
+
+      <article class="streamix-card">
+        <header class="streamix-card-head">
+          <div class="streamix-card-head-title">
+            <svg class="streamix-icon" aria-hidden="true">
+              <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-graph-up|"></use>
+            </svg>
+            <span>Summary</span>
+          </div>
+        </header>
+        <div class="streamix-card-body">
+          <div class="streamix-stack streamix-stack--flush">
+            <div class="streamix-row-stat">
+              <span class="streamix-row-stat-label">이번 달 스트리밍</span>
+              <span class="streamix-row-stat-value" th:text="${stats?.monthSessions} ?: 0">0</span>
             </div>
-            <div class="stat-icon bg-warning-soft">
-              <i class="bi bi-cloud-upload"></i>
+            <div class="streamix-row-stat">
+              <span class="streamix-row-stat-label">전체 스트리밍</span>
+              <span class="streamix-row-stat-value" th:text="${stats?.totalSessions} ?: 0">0</span>
+            </div>
+            <div class="streamix-row-stat">
+              <span class="streamix-row-stat-label">총 전송량</span>
+              <span class="streamix-row-stat-value" th:text="${stats?.totalBytesFormatted} ?: '0 B'">0 B</span>
+            </div>
+            <div class="streamix-row-stat">
+              <span class="streamix-row-stat-label">평균 시간</span>
+              <span class="streamix-row-stat-value" th:text="${stats?.avgDurationFormatted} ?: '-'">-</span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </article>
 
-  <div class="row g-4">
-    <!-- Recent Files -->
-    <div class="col-lg-8">
-      <div class="card h-100">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-clock-history me-2"></i>최근 업로드</span>
-          <a th:href="@{${@streamixProperties.dashboard.path} + '/files'}"
-             class="btn btn-sm btn-outline-streamix">
-            전체 보기
-          </a>
-        </div>
-        <div class="card-body p-0">
-          <div th:if="${#lists.isEmpty(recentFiles)}" class="empty-state">
-            <div class="empty-state-icon">
-              <i class="bi bi-folder-x"></i>
-            </div>
-            <div class="empty-state-title">업로드된 파일이 없습니다</div>
-            <div class="empty-state-text">파일 관리에서 새 파일을 업로드하세요</div>
+      <article class="streamix-card">
+        <header class="streamix-card-head">
+          <div class="streamix-card-head-title">
+            <svg class="streamix-icon" aria-hidden="true">
+              <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-broadcast|"></use>
+            </svg>
+            <span>Active Sessions</span>
           </div>
-
-          <div th:if="${!#lists.isEmpty(recentFiles)}" class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead>
-              <tr>
-                <th>미리보기</th>
-                <th>파일명</th>
-                <th>타입</th>
-                <th>크기</th>
-                <th>업로드</th>
-                <th></th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr th:each="file : ${recentFiles}">
-                <td>
-                  <img th:if="${file.thumbnailPath != null}"
-                       th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'}"
-                       class="thumbnail-preview" alt="썸네일">
-                  <div th:if="${file.thumbnailPath == null}"
-                       class="file-icon"
-                       th:classappend="${file.type.name().toLowerCase()}">
-                    <i th:class="${file.type.name() == 'VIDEO' ? 'bi bi-camera-video' : (file.type.name() == 'IMAGE' ? 'bi bi-image' : (file.type.name() == 'AUDIO' ? 'bi bi-music-note-beamed' : (file.type.name() == 'DOCUMENT' ? 'bi bi-file-earmark-text' : (file.type.name() == 'ARCHIVE' ? 'bi bi-file-earmark-zip' : 'bi bi-file-earmark'))))}"></i>
-                  </div>
-                </td>
-                <td>
-                  <span class="fw-medium text-truncate d-inline-block" style="max-width: 200px;"
-                        th:text="${file.originalName}" th:title="${file.originalName}"></span>
-                </td>
-                <td>
-                  <span class="badge"
-                        th:classappend="${file.type.name() == 'VIDEO' ? 'bg-video' : (file.type.name() == 'IMAGE' ? 'bg-image' : (file.type.name() == 'AUDIO' ? 'bg-audio' : (file.type.name() == 'DOCUMENT' ? 'bg-document' : (file.type.name() == 'ARCHIVE' ? 'bg-archive' : 'bg-other'))))}"
-                        th:text="${file.type}"></span>
-                </td>
-                <td>
-                  <span th:text="${file.formattedSize}">0 B</span>
-                </td>
-                <td>
-                  <span class="text-muted small"
-                        th:text="${#temporals.format(file.createdAt, 'MM-dd HH:mm')}"></span>
-                </td>
-                <td>
-                  <a th:href="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id}}"
-                     class="btn btn-sm btn-outline-secondary btn-icon"
-                     data-bs-toggle="tooltip" title="상세 보기">
-                    <i class="bi bi-eye"></i>
-                  </a>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Summary & Active Sessions -->
-    <div class="col-lg-4">
-      <!-- Stats Summary -->
-      <div class="card mb-4">
-        <div class="card-header">
-          <i class="bi bi-graph-up me-2"></i>통계 요약
-        </div>
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-            <span class="text-muted">이번 달 스트리밍</span>
-            <span class="fw-bold" th:text="${stats?.monthSessions} ?: 0">0</span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-            <span class="text-muted">전체 스트리밍</span>
-            <span class="fw-bold" th:text="${stats?.totalSessions} ?: 0">0</span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-            <span class="text-muted">총 전송량</span>
-            <span class="fw-bold" th:text="${stats?.totalBytesFormatted} ?: '0 B'">0 B</span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="text-muted">평균 스트리밍 시간</span>
-            <span class="fw-bold" th:text="${stats?.avgDurationFormatted} ?: '-'">-</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Sessions -->
-      <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-broadcast me-2"></i>활성 세션</span>
-          <span class="badge bg-success badge-status" th:if="${!#lists.isEmpty(activeSessions)}">
-            <span th:text="${#lists.size(activeSessions)}"></span> 활성
+          <span th:if="${!#lists.isEmpty(activeSessions)}" class="streamix-badge streamix-badge--live">
+            <span class="streamix-pulse" aria-hidden="true"></span>
+            <span th:text="${#lists.size(activeSessions)} + ' LIVE'"></span>
           </span>
-        </div>
-        <div class="card-body">
-          <div th:if="${#lists.isEmpty(activeSessions)}" class="text-center text-muted py-4">
-            <i class="bi bi-wifi-off d-block mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-            <small>현재 활성 스트리밍 없음</small>
+        </header>
+        <div class="streamix-card-body streamix-card-body--flush">
+          <div th:if="${#lists.isEmpty(activeSessions)}" class="streamix-empty streamix-empty--compact">
+            <svg class="streamix-empty-icon" aria-hidden="true">
+              <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-wifi-off|"></use>
+            </svg>
+            <div class="streamix-empty-text">현재 활성 스트리밍 없음</div>
           </div>
 
-          <div th:if="${!#lists.isEmpty(activeSessions)}">
-            <div th:each="session, stat : ${activeSessions}"
-                 class="d-flex align-items-center gap-3 py-2"
-                 th:classappend="${!stat.last ? 'border-bottom' : ''}">
-              <div class="session-status-dot active"></div>
-              <div class="flex-grow-1">
-                <div class="small fw-medium text-truncate" style="max-width: 150px;"
+          <div th:unless="${#lists.isEmpty(activeSessions)}" class="streamix-list">
+            <div th:each="session : ${activeSessions}" class="streamix-list-row">
+              <span class="streamix-pulse" aria-hidden="true"></span>
+              <div class="streamix-list-main">
+                <div class="streamix-list-title streamix-truncate"
                      th:text="${session.fileId}" th:title="${session.fileId}"></div>
-                <div class="text-muted small" th:text="${session.clientIp}"></div>
+                <div class="streamix-list-meta" th:text="${session.clientIp}"></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </article>
 
-  <!-- Popular Files -->
-  <div class="card mt-4" th:if="${!#lists.isEmpty(popularFiles)}">
-    <div class="card-header">
-      <i class="bi bi-fire me-2"></i>인기 파일
     </div>
-    <div class="card-body">
-      <div class="row g-3">
-        <div th:each="popular : ${popularFiles}" class="col-md-4 col-lg-2">
-          <div class="text-center p-3 rounded hover-lift cursor-pointer"
-               style="background: var(--streamix-bg);">
-            <i class="bi bi-play-circle d-block mb-2" style="font-size: 2rem; color: var(--streamix-primary);"></i>
-            <div class="small text-truncate" th:text="${popular.fileId}" th:title="${popular.fileId}"></div>
-            <div class="text-muted small">
-              <span th:text="${popular.streamCount}"></span>회 재생
-            </div>
+  </section>
+
+  <article th:if="${!#lists.isEmpty(popularFiles)}" class="streamix-card streamix-mt-5">
+    <header class="streamix-card-head">
+      <div class="streamix-card-head-title">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-fire|"></use>
+        </svg>
+        <span>Popular Files</span>
+      </div>
+    </header>
+    <div class="streamix-card-body">
+      <div class="streamix-tile-grid">
+        <div th:each="popular : ${popularFiles}" class="streamix-tile">
+          <svg class="streamix-tile-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-play-circle|"></use>
+          </svg>
+          <div class="streamix-tile-title streamix-mono"
+               th:text="${#strings.abbreviate(popular.fileId, 18)}"
+               th:title="${popular.fileId}"></div>
+          <div class="streamix-tile-meta">
+            <span th:text="${popular.streamCount}"></span> plays
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </article>
+
 </div>
 </body>
 </html>

@@ -7,95 +7,117 @@
 </head>
 <body>
 <div layout:fragment="content">
-  <!-- Page Header -->
-  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
-    <div>
-      <h1 class="page-title">파일 관리</h1>
-      <p class="page-subtitle">업로드된 미디어 파일을 관리합니다</p>
-    </div>
-    <button type="button" class="btn btn-streamix" data-bs-toggle="modal" data-bs-target="#uploadModal">
-      <i class="bi bi-cloud-upload me-2"></i>파일 업로드
-    </button>
-  </div>
 
-  <!-- File List -->
-  <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-      <span><i class="bi bi-folder me-2"></i>파일 목록</span>
-      <span class="badge bg-secondary" th:text="${totalElements} + '개'">0개</span>
+  <header class="streamix-mast">
+    <div>
+      <h1 class="streamix-mast-title">Files</h1>
+      <div class="streamix-mast-sub">
+        <span class="streamix-mast-rule" aria-hidden="true"></span>
+        <span class="streamix-meta">Media Library · <span th:text="${totalElements}">0</span> assets</span>
+      </div>
     </div>
-    <div class="card-body p-0">
-      <div th:if="${#lists.isEmpty(files)}" class="empty-state">
-        <div class="empty-state-icon">
-          <i class="bi bi-folder-x"></i>
-        </div>
-        <div class="empty-state-title">업로드된 파일이 없습니다</div>
-        <div class="empty-state-text">위의 '파일 업로드' 버튼을 클릭하여 파일을 추가하세요</div>
-        <button type="button" class="btn btn-streamix" data-bs-toggle="modal" data-bs-target="#uploadModal">
-          <i class="bi bi-cloud-upload me-2"></i>첫 번째 파일 업로드
+    <div class="streamix-mast-actions">
+      <button type="button" class="streamix-btn streamix-btn--primary"
+              data-streamix-modal-target="streamix-upload-modal">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-cloud-upload|"></use>
+        </svg>
+        <span>파일 업로드</span>
+      </button>
+    </div>
+  </header>
+
+  <article class="streamix-card">
+    <header class="streamix-card-head">
+      <div class="streamix-card-head-title">
+        <svg class="streamix-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-folder|"></use>
+        </svg>
+        <span>Catalog</span>
+      </div>
+      <span class="streamix-badge" th:text="|${totalElements} TOTAL|">0 TOTAL</span>
+    </header>
+
+    <div class="streamix-card-body streamix-card-body--flush">
+      <div th:if="${#lists.isEmpty(files)}" class="streamix-empty">
+        <svg class="streamix-empty-icon" aria-hidden="true">
+          <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-folder-x|"></use>
+        </svg>
+        <div class="streamix-empty-title">업로드된 파일이 없습니다</div>
+        <div class="streamix-empty-text">아래 버튼을 클릭하여 첫 번째 파일을 추가하세요.</div>
+        <button type="button" class="streamix-btn streamix-btn--primary"
+                data-streamix-modal-target="streamix-upload-modal">
+          <svg class="streamix-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-cloud-upload|"></use>
+          </svg>
+          <span>첫 번째 파일 업로드</span>
         </button>
       </div>
 
-      <div th:if="${!#lists.isEmpty(files)}" class="table-responsive">
-        <table class="table table-hover mb-0">
+      <div th:unless="${#lists.isEmpty(files)}" class="streamix-table-wrap">
+        <table class="streamix-table">
           <thead>
           <tr>
-            <th style="width: 80px;">미리보기</th>
-            <th>파일명</th>
-            <th style="width: 100px;">타입</th>
-            <th style="width: 100px;">크기</th>
-            <th style="width: 140px;">업로드 일시</th>
-            <th style="width: 150px;">액션</th>
+            <th scope="col" style="width: 70px;">Preview</th>
+            <th scope="col">Name</th>
+            <th scope="col" style="width: 100px;">Type</th>
+            <th scope="col" style="width: 90px;">Size</th>
+            <th scope="col" style="width: 140px;">Uploaded</th>
+            <th scope="col" style="width: 160px;">Actions</th>
           </tr>
           </thead>
           <tbody>
           <tr th:each="file : ${files}">
             <td>
-              <!-- 썸네일이 있는 경우 -->
               <img th:if="${file.thumbnailPath != null}"
+                   class="streamix-thumb"
                    th:src="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/thumbnail'}"
-                   class="thumbnail-preview" alt="썸네일">
-              <!-- 썸네일이 없는 경우 - FileType별 아이콘 -->
+                   alt="">
               <div th:if="${file.thumbnailPath == null}"
-                   class="file-icon"
-                   th:classappend="${file.type.name().toLowerCase()}">
-                <i th:class="${file.type.name() == 'VIDEO' ? 'bi bi-camera-video' : (file.type.name() == 'IMAGE' ? 'bi bi-image' : (file.type.name() == 'AUDIO' ? 'bi bi-music-note-beamed' : (file.type.name() == 'DOCUMENT' ? 'bi bi-file-earmark-text' : (file.type.name() == 'ARCHIVE' ? 'bi bi-file-earmark-zip' : 'bi bi-file-earmark'))))}"></i>
+                   class="streamix-file-icon"
+                   th:classappend="|streamix-file-icon--${#strings.toLowerCase(file.type.name())}|">
+                <th:block th:replace="~{streamix/fragments :: fileTypeIcon(${file.type.name()})}"></th:block>
               </div>
             </td>
             <td>
-              <div class="fw-medium" th:text="${file.originalName}"></div>
-              <small class="text-muted" th:text="'ID: ' + ${#strings.abbreviate(file.id.toString(), 20)}"></small>
+              <div class="streamix-table-name" th:text="${file.originalName}" th:title="${file.originalName}"></div>
+              <div class="streamix-table-id streamix-mono"
+                   th:text="|ID · ${#strings.abbreviate(file.id.toString(), 22)}|"></div>
             </td>
             <td>
-              <!-- FileType별 Badge -->
-              <span class="badge"
-                    th:classappend="${file.type.name() == 'VIDEO' ? 'bg-video' : (file.type.name() == 'IMAGE' ? 'bg-image' : (file.type.name() == 'AUDIO' ? 'bg-audio' : (file.type.name() == 'DOCUMENT' ? 'bg-document' : (file.type.name() == 'ARCHIVE' ? 'bg-archive' : 'bg-other'))))}"
+              <span class="streamix-badge"
+                    th:classappend="|streamix-badge--${#strings.toLowerCase(file.type.name())}|"
                     th:text="${file.type}"></span>
             </td>
+            <td class="streamix-mono" th:text="${file.formattedSize}">0 B</td>
+            <td class="streamix-mono"
+                th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
             <td>
-              <span th:text="${file.formattedSize}">0 B</span>
-            </td>
-            <td>
-              <span th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
-            </td>
-            <td>
-              <div class="btn-group btn-group-actions">
-                <a th:href="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
-                   class="btn btn-sm btn-outline-primary" target="_blank"
-                   data-bs-toggle="tooltip" title="스트리밍">
-                  <i class="bi bi-play-fill"></i>
+              <div class="streamix-btn-group">
+                <a class="streamix-btn streamix-btn--ghost streamix-btn--icon"
+                   th:href="@{${@streamixProperties.api.basePath} + '/files/' + ${file.id} + '/stream'}"
+                   target="_blank" rel="noopener"
+                   title="스트리밍" aria-label="새 탭에서 스트리밍">
+                  <svg class="streamix-icon" aria-hidden="true">
+                    <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-play-fill|"></use>
+                  </svg>
                 </a>
-                <a th:href="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id}}"
-                   class="btn btn-sm btn-outline-secondary"
-                   data-bs-toggle="tooltip" title="상세 보기">
-                  <i class="bi bi-eye"></i>
+                <a class="streamix-btn streamix-btn--ghost streamix-btn--icon"
+                   th:href="@{${@streamixProperties.dashboard.path} + '/files/' + ${file.id}}"
+                   title="상세 보기" aria-label="상세 보기">
+                  <svg class="streamix-icon" aria-hidden="true">
+                    <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-eye|"></use>
+                  </svg>
                 </a>
-                <button type="button" class="btn btn-sm btn-outline-danger"
-                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                <button type="button"
+                        class="streamix-btn streamix-btn--ghost streamix-btn--icon"
+                        data-streamix-modal-target="streamix-delete-modal"
                         th:data-file-id="${file.id}"
                         th:data-file-name="${file.originalName}"
-                        title="삭제">
-                  <i class="bi bi-trash"></i>
+                        title="삭제" aria-label="파일 삭제">
+                  <svg class="streamix-icon streamix-icon--destructive" aria-hidden="true">
+                    <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-trash|"></use>
+                  </svg>
                 </button>
               </div>
             </td>
@@ -105,96 +127,73 @@
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div th:if="${totalPages > 1}" class="card-footer bg-transparent">
-      <nav>
-        <ul class="pagination pagination-sm justify-content-center mb-0">
-          <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-            <a class="page-link" th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${currentPage - 1})}">
-              <i class="bi bi-chevron-left"></i>
-            </a>
-          </li>
-          <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-              class="page-item" th:classappend="${i == currentPage ? 'active' : ''}">
-            <a class="page-link" th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${i})}" th:text="${i + 1}"></a>
-          </li>
-          <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-            <a class="page-link" th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${currentPage + 1})}">
-              <i class="bi bi-chevron-right"></i>
-            </a>
-          </li>
-        </ul>
+    <footer th:if="${totalPages > 1}" class="streamix-card-foot">
+      <nav class="streamix-pagination" aria-label="페이지 이동">
+        <a class="streamix-page"
+           th:classappend="${currentPage == 0 ? 'is-disabled' : ''}"
+           th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${currentPage - 1})}"
+           aria-label="이전">
+          <svg class="streamix-icon streamix-icon--sm" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-chevron-left|"></use>
+          </svg>
+        </a>
+        <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+           class="streamix-page"
+           th:classappend="${i == currentPage ? 'is-active' : ''}"
+           th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${i})}"
+           th:text="${i + 1}"></a>
+        <a class="streamix-page"
+           th:classappend="${currentPage == totalPages - 1 ? 'is-disabled' : ''}"
+           th:href="@{${@streamixProperties.dashboard.path} + '/files'(page=${currentPage + 1})}"
+           aria-label="다음">
+          <svg class="streamix-icon streamix-icon--sm" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-chevron-right|"></use>
+          </svg>
+        </a>
       </nav>
-    </div>
-  </div>
+    </footer>
+  </article>
 
   <!-- Upload Modal -->
-  <div class="modal fade" id="uploadModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">
-            <i class="bi bi-cloud-upload me-2"></i>파일 업로드
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="streamix-modal-overlay" id="streamix-upload-modal" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+    <div class="streamix-modal">
+      <header class="streamix-modal-head">
+        <h2 id="upload-modal-title" class="streamix-modal-title">파일 업로드</h2>
+        <button type="button" class="streamix-btn streamix-btn--ghost streamix-btn--icon"
+                data-streamix-modal-close aria-label="닫기">
+          <svg class="streamix-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-x-lg|"></use>
+          </svg>
+        </button>
+      </header>
+      <div class="streamix-modal-body">
+        <div class="streamix-upload" data-streamix-upload>
+          <svg class="streamix-icon streamix-icon--2xl streamix-upload-icon" aria-hidden="true">
+            <use th:attr="href=|@{/streamix/svg/icons.svg}#icon-cloud-arrow-up|"></use>
+          </svg>
+          <div class="streamix-upload-title">클릭하거나 파일을 드래그하세요</div>
+          <div class="streamix-upload-meta">
+            <span th:if="${@streamixProperties.storage.isAllTypesAllowed()}">모든 파일</span>
+            <span th:unless="${@streamixProperties.storage.isAllTypesAllowed()}"
+                  th:text="${T(java.lang.String).join(' · ', @streamixProperties.storage.allowedTypes)}"></span>
+            <span th:if="${@streamixProperties.storage.maxFileSize > 0}">
+              &nbsp;·&nbsp;
+              <span th:text="|MAX ${#numbers.formatDecimal(@streamixProperties.storage.maxFileSize / 1024.0 / 1024.0, 1, 0)}MB|"></span>
+            </span>
+          </div>
         </div>
-        <div class="modal-body">
-          <div id="uploadArea" class="upload-area">
-            <div class="upload-icon">
-              <i class="bi bi-cloud-arrow-up"></i>
-            </div>
-            <div class="mb-2 fw-medium">클릭하거나 파일을 드래그하세요</div>
-            <div class="text-muted small">
-              <span th:if="${@streamixProperties.storage.isAllTypesAllowed()}">모든 파일 지원</span>
-              <span th:unless="${@streamixProperties.storage.isAllTypesAllowed()}"
-                    th:text="${T(java.lang.String).join(', ', @streamixProperties.storage.allowedTypes)} + ' 파일 지원'"></span>
-              <span th:if="${@streamixProperties.storage.maxFileSize > 0}">
-                (최대 <span th:text="${#numbers.formatDecimal(@streamixProperties.storage.maxFileSize / 1024.0 / 1024.0, 1, 0)} + ' MB'"></span>)
-              </span>
-              <span th:unless="${@streamixProperties.storage.maxFileSize > 0}">(크기 제한 없음)</span>
-            </div>
-          </div>
-          <input type="file" id="fileInput" class="d-none">
+        <input type="file" data-streamix-upload-input class="streamix-hidden">
 
-          <div id="uploadProgress" class="progress mt-3 d-none" style="height: 8px;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated bg-streamix"
-                 role="progressbar" style="width: 0%">0%</div>
-          </div>
+        <div data-streamix-upload-progress class="streamix-progress streamix-hidden streamix-mt-4">
+          <div class="streamix-progress-bar streamix-progress-bar--accent"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
-  <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title">
-            <i class="bi bi-exclamation-triangle text-danger me-2"></i>파일 삭제
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body text-center py-4">
-          <div class="mb-3">
-            <i class="bi bi-trash text-danger" style="font-size: 3rem;"></i>
-          </div>
-          <p class="mb-1">다음 파일을 삭제하시겠습니까?</p>
-          <p class="fw-bold" id="deleteFileName">파일명</p>
-          <p class="text-muted small">이 작업은 되돌릴 수 없습니다.</p>
-        </div>
-        <div class="modal-footer border-0 justify-content-center">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
-          <form id="deleteForm" method="post"
-                th:data-base-path="${@streamixProperties.dashboard.path}" class="d-inline">
-            <button type="submit" class="btn btn-danger">
-              <i class="bi bi-trash me-1"></i>삭제
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Delete Modal (fragment) -->
+  <th:block th:replace="~{streamix/fragments :: deleteModal(${null})}"></th:block>
+
 </div>
 </body>
 </html>
