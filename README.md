@@ -61,7 +61,7 @@ streamix/
 
 ```groovy
 dependencies {
-    implementation 'io.github.junhyeong9812:streamix-spring-boot-starter:2.0.0'
+    implementation 'io.github.junhyeong9812:streamix-spring-boot-starter:3.0.0'
     
     // 데이터베이스 드라이버 (선택)
     runtimeOnly 'org.postgresql:postgresql:42.7.4'
@@ -76,7 +76,7 @@ dependencies {
 <dependency>
     <groupId>io.github.junhyeong9812</groupId>
     <artifactId>streamix-spring-boot-starter</artifactId>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
@@ -422,6 +422,49 @@ open build/reports/tests/test/index.html
 
 ## Changelog
 
+### v3.0.0 (2026-05-11) — Dashboard Redesign
+
+#### New Design — Cinema/Editorial Brutalist
+- 대시보드 UI 전면 재설계 (잡지 헤드라인 + 영화관 미감)
+- OKLCH 컬러 토큰 (라이트/다크 듀얼 테마)
+- 시스템 폰트 스택만 사용 — 외부 폰트 다운로드 0
+  - Display: `ui-serif`, Iowan Old Style, Apple Garamond, Baskerville
+  - Body: `system-ui`, Pretendard, Roboto
+  - Mono: `ui-monospace`, SF Mono, Cascadia Mono
+- 페이지 로드 staggered fade-in 애니메이션
+
+#### New Features
+- **다크/라이트/system 테마 토글** — localStorage 저장, OS 변경 자동 추적, FOUC 방지 inline script
+- **자동 새로고침 정상화** — 신규 엔드포인트 `GET /api/streamix/sessions/active`로 5초 폴링
+- **JS 모듈 아키텍처** — Event Bus / Store / Api 분리, ES Module 기반
+- **공개 네임스페이스** — `window.Streamix.{events, store, api, theme, toast, modal, format}`
+
+#### Removed Dependencies (라이브러리 종속 0 방침)
+- **WebJars Bootstrap 5.3.2 제거**
+- **WebJars Bootstrap Icons 1.11.1 제거** (Bootstrap Icons MIT SVG 25개를 self-host sprite로 차용)
+- **WebJars Locator Lite 1.0.1 제거**
+- **Tailwind/PostCSS 도입 없음** — 순수 CSS 한 파일(`streamix.css`)
+- **외부 폰트(Google Fonts 등) 사용 안 함**
+- **npm/Node 빌드 단계 없음** — `./gradlew build` 한 줄로 끝
+
+#### Breaking Changes
+- **CSS 파일명 변경**: `streamix/css/dashboard.css` → `streamix/css/streamix.css`
+- **CSS 클래스 prefix 변경**: 모든 컴포넌트 클래스에 `streamix-*` 접두사 (사용자 페이지와 충돌 회피)
+- **Bootstrap 의존성 제거**: starter 측 WebJars Bootstrap을 자체 페이지에서 사용 중이었다면 직접 의존성 추가 필요
+- **JS 진입점 변경**: `streamix/js/dashboard.js` → ES Modules 진입점 `streamix/js/main.js` (`type="module"`)
+- **JS 전역 API 변경**:
+  - `window.Streamix.formatFileSize` → `window.Streamix.format.fileSize`
+  - `window.Streamix.formatDateTime` → `window.Streamix.format.dateTime`
+  - `window.Streamix.formatDuration` → `window.Streamix.format.duration`
+  - `window.Streamix.showToast` → `window.Streamix.toast`
+- **다크모드 기본**: 페이지 로드 시 OS 설정 따름 (system mode). 강제 라이트 원하면 사용자 측에서 `localStorage.setItem('streamix.theme', 'light')`
+
+#### Migration Guide (v2 → v3)
+1. 사용자 앱이 starter의 Bootstrap을 다른 페이지에서 참조하고 있었다면 → 직접 WebJars 또는 CDN 추가
+2. 사용자가 `dashboard.css`를 커스텀 override했다면 → `streamix.css`로 경로 변경 + 새 streamix-* 클래스 매핑
+3. JS 헬퍼 호출처를 새 `window.Streamix.format.*` 네임스페이스로 변경
+4. `@EnableStreamix`, `StreamixProperties`, REST API 시그니처는 **동일** — 별도 변경 불필요
+
 ### v2.0.0 (2025-12-31)
 
 #### New Features
@@ -460,6 +503,14 @@ open build/reports/tests/test/index.html
 ## 라이센스
 
 MIT License - [LICENSE](LICENSE) 파일 참조
+
+### 3rd-party Acknowledgments
+
+본 프로젝트는 다음 오픈소스의 일부를 자체 호스팅하여 사용합니다.
+
+| 자원 | 사용 위치 | 라이센스 | 출처 |
+|------|----------|----------|------|
+| Bootstrap Icons SVG (약 25개) | `static/streamix/svg/icons.svg` (self-host sprite) | MIT | [twbs/icons](https://github.com/twbs/icons) © Bootstrap Authors |
 
 ## 기여
 

@@ -5,8 +5,9 @@
 ## 프로젝트 정보
 - **프로젝트명**: streamix
 - **모듈 구성**: 멀티 모듈 Gradle (`streamix-core`, `streamix-spring-boot-starter`)
-- **현재 버전**: 2.0.0
+- **현재 버전**: 3.0.0-SNAPSHOT (v3.0.0 대시보드 재설계 완료)
 - **기술 스택**: Java 25, Spring Boot 4.0, Spring Framework 7.0, Spring Data JPA 4.0, Thymeleaf 3.1, Thumbnailator 0.4.20, FFmpeg 6.x
+- **프론트엔드**: 순수 CSS + ES Modules (외부 의존성 0 — Tailwind/Bootstrap/Lucide/Google Fonts 없음)
 - **아키텍처 패턴**: Hexagonal (Ports & Adapters)
 - **배포 채널**: Maven Central (`io.github.junhyeong9812:streamix-core`, `streamix-spring-boot-starter`)
 
@@ -48,8 +49,11 @@ streamix/
 │       │   └── service/                  # StreamingMonitoringService
 │       └── resources/
 │           ├── application.yml           # ⚠ 라이브러리 측 설정 — 사용자 설정 오염 위험
-│           ├── static/streamix/{css,js}/ # dashboard.css 822줄, dashboard.js 515줄
-│           └── templates/streamix/       # layout / dashboard / files / file-detail / sessions
+│           ├── static/streamix/
+│           │   ├── css/streamix.css      # 단일 디자인 시스템 (OKLCH 토큰 + brutalist 컴포넌트, v3 신규)
+│           │   ├── svg/icons.svg         # Bootstrap Icons MIT self-host sprite (v3 신규)
+│           │   └── js/                   # ES Module 모듈: event-bus, store, api, theme, components/*, main (v3 신규)
+│           └── templates/streamix/       # layout / dashboard / files / file-detail / sessions (v3 brutalist 재작성)
 │
 └── docs/
     ├── concepts/                         # 학습용 개념 문서 (architecture, java, spring-boot-starter, streaming)
@@ -75,6 +79,7 @@ streamix/
 | `JpaFileMetadataAdapter` | starter/adapter/out/persistence | Spring Data JPA 어댑터 |
 | `StreamingMonitoringService` | starter/service | 세션 기록 + 통계 |
 | `StreamixApiController` | starter/adapter/in/web | `/api/streamix/files` REST API |
+| `StreamixSessionsApiController` | starter/adapter/in/web | `/api/streamix/sessions/active` JSON API (v3 신규 — 폴링용) |
 | `StreamixDashboardController` | starter/adapter/in/web | `/streamix` Thymeleaf UI |
 | `StreamixAutoConfiguration` | starter/autoconfigure | 핵심 Bean 등록 |
 | `StreamixRepositoryConfiguration` | starter/autoconfigure | EntityScan + EnableJpaRepositories |
@@ -126,15 +131,19 @@ streamix/
 | 로컬 디스크 | 파일 저장소 | `LocalFileStorageAdapter` |
 | Maven Central | 배포 | `tech.yanand.maven-central-publish` Gradle 플러그인 |
 
-## 현재 상태 (2026-05-10)
-- **단계**: 운영중 (v2.0.1-SNAPSHOT — 2.1.0 release 직전)
-- **완료 작업**: 전체 코드 리뷰 24개 이슈 일괄 개선 ✅ `BUILD SUCCESSFUL`
-- **이슈 인덱스**: `docs/refactor-log/2026-05-10-code-review/README.md`
-- **수정 계획**: `docs/plans/2026-05-10/code-review-fix/plan.md`
-- **학습 기록**: `docs/plans/2026-05-10/code-review-fix/learned.md`
+## 현재 상태 (2026-05-11)
+- **단계**: 운영중 (v3.0.0-SNAPSHOT — 대시보드 전면 재설계 완료)
+- **완료 작업**:
+  - v2.0.1: 전체 코드 리뷰 24개 이슈 일괄 개선 ✅
+  - **v3.0.0: 대시보드 재설계 (Cinema/Editorial Brutalist) + 외부 의존성 0** ✅ `BUILD SUCCESSFUL`
+- **v3 산출물**:
+  - `docs/plans/2026-05-10/v3-redesign/plan-v2.md` — 본 계획
+  - `docs/plans/2026-05-10/v3-redesign/checklist-v2.md` — 진행 트래커
+  - `docs/plans/2026-05-10/v3-redesign/learned.md` — 학습 기록
 
 ## 변경 이력
 | 날짜 | 변경 |
 |------|------|
 | 2026-05-10 | project-overview.md 신규 작성 |
 | 2026-05-10 | 코드 리뷰 24개 이슈 (P0 5 / P1 7 / P2 12) 일괄 개선 완료 — `BUILD SUCCESSFUL` |
+| 2026-05-11 | v3.0.0 대시보드 재설계: Tailwind/WebJars 모두 제거, 순수 CSS + ES Modules + Brutalist 미감, system 폰트 스택만 사용, Sessions API 추가 — `BUILD SUCCESSFUL` |

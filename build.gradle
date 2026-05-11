@@ -10,7 +10,7 @@ allprojects {
     // 로컬 개발 시 SNAPSHOT
     version = providers.gradleProperty('releaseVersion')
         .orElse(providers.environmentVariable('RELEASE_VERSION'))
-        .getOrElse('2.1.0-SNAPSHOT')
+        .getOrElse('3.0.0-SNAPSHOT')
 
     repositories {
         mavenCentral()
