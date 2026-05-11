@@ -22,7 +22,7 @@
   <link rel="preload" as="image" type="image/svg+xml" th:href="@{/streamix/svg/icons.svg}">
 </head>
 <body th:data-api-base-path="${@streamixProperties.api.basePath}"
-      th:data-allowed-types="${T(java.lang.String).join(',', @streamixProperties.storage.allowedTypes)}"
+      th:data-allowed-types="${#strings.listJoin(@streamixProperties.storage.allowedTypes, ',')}"
       th:data-max-file-size="${@streamixProperties.storage.maxFileSize}"
       th:data-streamix-sprite="@{/streamix/svg/icons.svg}">
 

@@ -175,7 +175,7 @@
           <div class="streamix-upload-meta">
             <span th:if="${@streamixProperties.storage.isAllTypesAllowed()}">모든 파일</span>
             <span th:unless="${@streamixProperties.storage.isAllTypesAllowed()}"
-                  th:text="${T(java.lang.String).join(' · ', @streamixProperties.storage.allowedTypes)}"></span>
+                  th:text="${#strings.listJoin(@streamixProperties.storage.allowedTypes, ' · ')}"></span>
             <span th:if="${@streamixProperties.storage.maxFileSize > 0}">
               &nbsp;·&nbsp;
               <span th:text="|MAX ${#numbers.formatDecimal(@streamixProperties.storage.maxFileSize / 1024.0 / 1024.0, 1, 0)}MB|"></span>
