@@ -60,6 +60,9 @@ publishing {
 signing {
     def signingKey = System.getenv("GPG_SIGNING_KEY")
     def signingPassword = System.getenv("SIGNING_PASSWORD")
+    // 로컬 publishToMavenLocal에서는 GPG 키가 없어서 서명을 건너뜀.
+    // CI(Maven Central publish)에서만 환경변수 두 개가 모두 설정됨.
+    required = { signingKey != null && signingPassword != null && gradle.taskGraph.hasTask("publish") }
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign publishing.publications.mavenJava
 }
