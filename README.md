@@ -125,6 +125,24 @@ streamix:
 - **REST API**: http://localhost:8080/api/streamix/files
 - **대시보드**: http://localhost:8080/streamix
 
+## 🎬 라이브 예제 (Reference Implementation)
+
+전체가 동작하는 컨슈머 앱 예제: **[streamix-example](https://github.com/junhyeong9812/streamix-example)**
+
+`@EnableStreamix` 단일 어노테이션으로 활성화된 미디어 스트리밍 서비스를 Spring Boot 4.0 + JPA + Docker 패키징까지 완성한 레퍼런스 구현체입니다.
+
+```bash
+# Docker 한 줄로 즉시 실행
+docker pull ghcr.io/junhyeong9812/streamix-example:latest
+docker run -d -p 8080:8080 -v ./data:/app/streamix-data ghcr.io/junhyeong9812/streamix-example:latest
+```
+
+포함 내용:
+- `@SpringBootApplication @EnableStreamix` 진입점
+- H2/PostgreSQL/MySQL 환경변수 스위칭 `application.yml`
+- 멀티 플랫폼 Docker 이미지 (amd64/arm64) + GitHub Actions GHCR 자동 발행
+- `.env.example` 전체 환경변수 레퍼런스
+
 ## 설정
 
 ### 전체 설정 옵션
