@@ -1,14 +1,13 @@
 package io.github.junhyeong9812.streamix.starter.annotation;
 
+// 아래 import들은 javadoc {@link}의 짧은 이름 해소를 위해 유지함.
+// v3.0.1+부터는 활성화에 사용하지 않음 (auto-config로 전환).
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixAutoConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixDashboardConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixMonitoringConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixRepositoryConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixThumbnailConfiguration;
 import io.github.junhyeong9812.streamix.starter.autoconfigure.StreamixWebConfiguration;
-// 주의: StreamixJpaConfiguration는 v2.0.1에서 삭제됨.
-// StreamixRepositoryConfiguration이 같은 책임을 수행함.
-import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
 
@@ -99,13 +98,11 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import({
-    StreamixRepositoryConfiguration.class,
-    StreamixAutoConfiguration.class,
-    StreamixWebConfiguration.class,
-    StreamixThumbnailConfiguration.class,
-    StreamixMonitoringConfiguration.class,
-    StreamixDashboardConfiguration.class
-})
 public @interface EnableStreamix {
+    // v3.0.1+: 마커 어노테이션. 실제 활성화는 spring.boot.autoconfigure 메커니즘이 담당
+    // (META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports).
+    // 이전 버전(~v3.0.0)은 이 어노테이션의 @Import로 활성화했지만, @ConditionalOnBean
+    // 평가가 DataSource 빈 등록 이전에 일어나 Monitoring/Dashboard가 누락되는 문제가
+    // 있었음. 정식 auto-config 방식으로 전환하여 ordering(@AutoConfigureAfter)이
+    // 정상 동작하도록 함. 기존 사용자 코드는 변경 불필요.
 }

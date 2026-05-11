@@ -13,7 +13,7 @@ import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfigur
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -72,8 +72,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @see FileMetadataJpaRepository
  * @see StreamixMonitoringConfiguration
  */
-@Configuration(proxyBeanMethods = false)
-@AutoConfigureAfter({DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@AutoConfiguration(after = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @EnableConfigurationProperties(StreamixProperties.class)
 @EntityScan(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")
 @EnableJpaRepositories(basePackages = "io.github.junhyeong9812.streamix.starter.adapter.out.persistence")

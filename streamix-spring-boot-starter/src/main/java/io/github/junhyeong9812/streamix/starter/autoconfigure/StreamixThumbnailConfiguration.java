@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 
 /**
  * Streamix 썸네일 자동 설정 클래스입니다.
@@ -75,7 +75,7 @@ import org.springframework.context.annotation.Configuration;
  * @see FFmpegThumbnailAdapter
  * @see StreamixProperties.Thumbnail
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnProperty(name = "streamix.thumbnail.enabled", havingValue = "true", matchIfMissing = true)
 public class StreamixThumbnailConfiguration {
 

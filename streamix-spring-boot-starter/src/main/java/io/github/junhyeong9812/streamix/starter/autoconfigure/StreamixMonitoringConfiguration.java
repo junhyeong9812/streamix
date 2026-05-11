@@ -12,7 +12,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.sql.DataSource;
@@ -60,8 +61,8 @@ import javax.sql.DataSource;
  * @see StreamingMonitoringService
  * @see StreamingSessionRepository
  */
-@Configuration(proxyBeanMethods = false)
-@AutoConfigureAfter(StreamixRepositoryConfiguration.class)
+@AutoConfiguration
+@AutoConfigureAfter({DataSourceAutoConfiguration.class, StreamixRepositoryConfiguration.class})
 @ConditionalOnClass({JpaRepository.class, DataSource.class})
 @ConditionalOnBean(DataSource.class)
 @ConditionalOnProperty(name = "streamix.dashboard.enabled", havingValue = "true", matchIfMissing = true)

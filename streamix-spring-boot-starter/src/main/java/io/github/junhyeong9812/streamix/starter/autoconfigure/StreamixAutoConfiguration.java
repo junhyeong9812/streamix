@@ -19,7 +19,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 
 import java.util.List;
 import java.util.Set;
@@ -119,7 +119,7 @@ import java.util.stream.Collectors;
  * @see StreamixProperties
  * @see io.github.junhyeong9812.streamix.starter.annotation.EnableStreamix
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @AutoConfigureAfter({StreamixRepositoryConfiguration.class, StreamixThumbnailConfiguration.class})
 @EnableConfigurationProperties(StreamixProperties.class)
 public class StreamixAutoConfiguration {
