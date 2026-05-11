@@ -428,16 +428,6 @@ public class PdfThumbnailAdapter implements ThumbnailGeneratorPort {
 open build/reports/tests/test/index.html
 ```
 
-## 문서
-
-- [구현 계획](docs/implement/README.md)
-- [리팩토링 이력](docs/REFACTORING_LOG.md)
-- [기본 개념](docs/concepts/)
-    - [아키텍처](docs/concepts/architecture/README.md)
-    - [스트리밍](docs/concepts/streaming/README.md)
-    - [Java 25](docs/concepts/java/README.md)
-    - [Spring Boot Starter](docs/concepts/spring-boot-starter/README.md)
-
 ## Changelog
 
 ### v3.0.0 (2026-05-11) — Dashboard Redesign
