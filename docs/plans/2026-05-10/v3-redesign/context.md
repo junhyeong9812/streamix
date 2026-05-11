@@ -129,3 +129,26 @@ v2는 npm/node 사용 안 함.
 | 5 | tailwind.config.js 위치 | **소거** — Tailwind 안 씀 |
 
 v2에서 남은 미결정 사항 없음 — plan-v2.md 승인 시 Phase α 즉시 시작 가능.
+
+## 배포 완료 (2026-05-11)
+
+### 커밋 분할 — commits.md 옵션 A 채택
+사용자 결정: **9개 커밋 (영역별/의미별)** + `gradlew` 별도 1개 = 총 11개.
+- 사유: 리뷰 단위로 의미가 명확하고 git bisect 친화적. 중간 단계 빌드는 통과(`./gradlew clean build` BUILD SUCCESSFUL)하지만 UI 작동은 8번 커밋(Sessions API) 이후부터 완전.
+
+### Push & 자동 배포
+1. `git push origin master` — 11 commits → `ci.yml` 발동
+2. `git tag -a v3.0.0 -m "v3.0.0 — Dashboard Brutalist Redesign (zero-dependency frontend)"` (어노테이티드 태그)
+3. `git push origin v3.0.0` → `publish.yml` 발동
+   - GitHub Actions가 `RELEASE_VERSION=3.0.0`을 `${GITHUB_REF#refs/tags/v}`에서 추출
+   - `./gradlew build -PreleaseVersion=3.0.0` → `./gradlew :streamix-core:publishToMavenCentralPortal` + `:streamix-spring-boot-starter:publishToMavenCentralPortal`
+   - `publishingType = "AUTOMATIC"` — Maven Central에서 staging 후 자동 release
+
+### 배포 검증 방법
+- GitHub Actions: `https://github.com/junhyeong9812/streamix/actions`
+- Maven Central: `https://central.sonatype.com/artifact/io.github.junhyeong9812/streamix-spring-boot-starter/3.0.0`
+- 클라이언트 사용: `implementation 'io.github.junhyeong9812:streamix-spring-boot-starter:3.0.0'`
+
+### GitHub Release (미수행)
+`publish.yml`에 `push:tags` + `release:created` 두 트리거가 모두 있어 release 추가 생성 시 publish가 중복 발동될 위험이 있음. 같은 버전 재 publish는 Maven Central에서 거부되므로, 이번 사이클은 **태그 push만** 수행하여 publish 1회만 발동. 향후 release 노트가 필요하면 웹 UI에서 v3.0.0 태그 기반으로 생성 (publish는 이미 끝났으므로 두 번째 발동의 실패는 무해).
+

@@ -824,7 +824,105 @@ main.js       ← 진입점: 모듈 import + DOM wiring + window.Streamix 노출
 | 폼 검증 데코레이터 패턴 | 업로드 시 client + server 검증 일관화 |
 | Lighthouse + Web Vitals | brutalist 미감의 perceived performance 측정 |
 
+## 11. 배포 자동화 패턴 (Tag-driven Maven Central Publish)
+
+### 11.1 워크플로우 트리거 구조
+
+**`.github/workflows/publish.yml`**:
+```yaml
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [ created ]
+  workflow_dispatch:
+    inputs:
+      version: { description: 'Release version (e.g. 2.0.1)', required: true }
+```
+
+세 가지 트리거가 모두 등록되어 있다:
+- `push: tags: 'v*'` — `v3.0.0` 등 버전 태그 push 시
+- `release: created` — GitHub Release 생성 시
+- `workflow_dispatch` — Actions 탭에서 수동 실행 (`version` 입력 받음)
+
+### 11.2 버전 추출 패턴
+
+```yaml
+- name: Resolve release version
+  run: |
+    if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "release" ]; then
+      echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_ENV"
+    else
+      echo "RELEASE_VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_ENV"
+    fi
+```
+
+- `${GITHUB_REF#refs/tags/v}`: `refs/tags/v3.0.0` → `3.0.0` (bash parameter expansion `#prefix`로 prefix 제거)
+- 그 후 `./gradlew build -PreleaseVersion=$RELEASE_VERSION`로 주입
+
+### 11.3 루트 build.gradle의 fallback 패턴
+
+```groovy
+version = providers.gradleProperty('releaseVersion')
+    .orElse(providers.environmentVariable('RELEASE_VERSION'))
+    .getOrElse('3.0.0-SNAPSHOT')
+```
+
+우선순위:
+1. `-PreleaseVersion=3.0.0` CLI 프로퍼티 (CI에서 주입)
+2. `RELEASE_VERSION` 환경변수
+3. fallback: `3.0.0-SNAPSHOT` (로컬 개발용)
+
+### 11.4 Maven Central Portal Publishing
+
+`tech.yanand.maven-central-publish` 플러그인 사용:
+```groovy
+mavenCentral {
+    authToken = System.getenv("MAVEN_CENTRAL_TOKEN")
+    publishingType = "AUTOMATIC"
+}
+```
+- `AUTOMATIC`: staging → release를 자동 진행 (수동 portal 확인 없음)
+- `USER_MANAGED`: staging만, release는 portal UI에서 직접
+
+GPG 서명:
+```groovy
+signing {
+    def signingKey = System.getenv("GPG_SIGNING_KEY")
+    def signingPassword = System.getenv("SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+}
+```
+- in-memory GPG → CI 환경에서 keyring 파일 없이 secret env로만 서명 가능
+
+### 11.5 트리거 중복 주의
+
+`push:tags`와 `release:created` 둘 다 있을 때 `gh release create v3.0.0 --target master` 같은 명령은:
+1. GitHub이 서버사이드에서 태그를 생성/push → `push:tags` trigger 발동
+2. Release를 생성 → `release:created` trigger 발동
+
+→ publish 워크플로우가 두 번 동시 실행될 수 있음. Maven Central은 같은 GAV(GroupId:ArtifactId:Version)를 두 번 publish하려고 하면 거부하므로 두 번째 run은 실패. 이번 사이클은 **태그 push만 수행하여 1회 발동**으로 처리.
+
+### 11.6 의미 단위 커밋 분할 전략 (commits.md 옵션 A)
+
+v3-redesign처럼 18+ 파일 변경 / CSS+JS+템플릿+Java가 섞인 대규모 변경에서, "단일 거대 커밋"이나 "Phase별 5개 커밋"보다 **영역별/의미별 9개 커밋**을 선택한 이유:
+1. **리뷰 단위**: 각 커밋이 한 가지 의미를 담아 PR 리뷰 시 한 번에 파악 가능
+2. **bisect 친화적**: 회귀 발생 시 `git bisect`로 9개 후보 중 원인 좁히기 쉬움
+3. **롤백 단위**: 한 영역(예: 컴포넌트 모듈만)만 revert 가능
+4. **단점 수용**: 중간 커밋(1~7번)에서는 UI가 깨지지만 컴파일/테스트는 통과 → CI bisect 시 빌드 기준으로 충분
+
+커밋 메시지 컨벤션 (commits.md):
+- `chore(deps):` 의존성 변경
+- `feat(static):` 정적 자원 (CSS/JS/SVG)
+- `feat(templates):` Thymeleaf 페이지
+- `feat(api):` REST/JSON API
+- `chore:` 버전 bump / 문서
+- BREAKING CHANGE footer는 conventional commits 규약 따름 (v3.0.0 major bump 정당화)
+
 ## 변경 이력
 | 날짜 | 변경 |
 |------|------|
 | 2026-05-11 | learned.md 초안 작성 (v3-redesign 완료 시점) |
+| 2026-05-11 | 11절 "배포 자동화 패턴" 추가 — tag push → Maven Central, 트리거 중복 주의, 9-커밋 분할 사유 |
