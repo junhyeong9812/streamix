@@ -430,6 +430,26 @@ open build/reports/tests/test/index.html
 
 ## Changelog
 
+### v3.0.1 (2026-05-12) — Dashboard/Monitoring Activation Fix
+
+#### Bug Fixes
+- **Dashboard/Monitoring 자동 구성 누락 수정**: v3.0.0에서 `@EnableStreamix`가 `@Import`로 Configuration을 가져오면서 `@ConditionalOnBean(DataSource.class)`가 DataSource 등록 이전 시점에 평가되어 `StreamixMonitoringConfiguration`, `StreamixDashboardConfiguration`, `StreamixSessionsApiController`가 모두 누락. `/streamix` 대시보드와 `/api/streamix/sessions/active`가 404 반환.
+- **Thymeleaf 3.1 보안 제약 충돌 수정**: `templates/streamix/layout.html` 및 `files.html`에서 사용한 `${T(java.lang.String).join(...)}` SpEL 표현식이 Spring Boot 4 + Thymeleaf 3.1.3의 보안 정책에 의해 차단되어 대시보드 페이지 500 에러.
+
+#### Changes
+- `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 신설하여 정식 Spring Boot 4 auto-config 메커니즘으로 전환
+- 6개 `*Configuration.java`의 `@Configuration(proxyBeanMethods=false)` → `@AutoConfiguration`
+- `@EnableStreamix`를 마커 어노테이션으로 전환 (`@Import` 제거). **컨슈머 코드 변경 불필요**.
+- `StreamixMonitoringConfiguration`에 `DataSourceAutoConfiguration`을 `@AutoConfigureAfter`에 명시
+- Thymeleaf SpEL `T(java.lang.String).join(...)` → `#strings.listJoin(...)` 빌트인 유틸로 교체
+
+#### Dev Ergonomics
+- `signing` 블록을 조건부로 변경. GPG 환경변수가 없거나 publish 태스크가 아닐 때(예: 로컬 `publishToMavenLocal`) 서명 건너뜀. CI 동작은 그대로.
+
+#### Migration (v3.0.0 → v3.0.1)
+- 컨슈머 코드 변경 없음. 의존성 버전만 `3.0.0` → `3.0.1`.
+- 기존 `@EnableStreamix` 사용 코드는 그대로 동작.
+
 ### v3.0.0 (2026-05-11) — Dashboard Redesign
 
 #### New Design — Cinema/Editorial Brutalist
