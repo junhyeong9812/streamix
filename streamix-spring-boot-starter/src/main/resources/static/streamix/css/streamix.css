@@ -1,0 +1,1667 @@
+/*
+ * Streamix Dashboard — v3.0.0
+ * Cinema/Editorial Brutalist · Zero-Dependency · System Fonts Only
+ *
+ * Bootstrap Icons (MIT) used for the SVG sprite at /streamix/svg/icons.svg
+ */
+
+/* ============================================================
+   1. DESIGN TOKENS — OKLCH
+   ============================================================ */
+
+:root {
+  /* Paper / Ink — Light theme */
+  --streamix-background: oklch(0.985 0.005 85);
+  --streamix-foreground: oklch(0.15 0.01 60);
+  --streamix-card: oklch(1 0 0);
+  --streamix-card-foreground: oklch(0.15 0.01 60);
+  --streamix-muted: oklch(0.94 0.005 85);
+  --streamix-muted-foreground: oklch(0.45 0.01 60);
+  --streamix-border: oklch(0.85 0.005 60);
+  --streamix-border-strong: oklch(0.20 0.01 60);
+  --streamix-input: oklch(1 0 0);
+  --streamix-ring: oklch(0.15 0.01 60);
+  --streamix-accent: oklch(0.82 0.18 85);
+  --streamix-accent-foreground: oklch(0.15 0.01 60);
+  --streamix-destructive: oklch(0.55 0.22 25);
+  --streamix-destructive-foreground: oklch(0.985 0 0);
+  --streamix-live: oklch(0.65 0.21 25);
+  --streamix-success: oklch(0.55 0.16 145);
+
+  --streamix-type-image: oklch(0.55 0.18 145);
+  --streamix-type-video: oklch(0.55 0.18 250);
+  --streamix-type-audio: oklch(0.50 0.22 295);
+  --streamix-type-document: oklch(0.62 0.18 65);
+  --streamix-type-archive: oklch(0.55 0.18 30);
+  --streamix-type-other: oklch(0.50 0.02 60);
+
+  --streamix-radius: 0;
+  --streamix-radius-sm: 2px;
+  --streamix-radius-card: 0;
+
+  /* Spacing scale */
+  --streamix-space-1: 0.25rem;
+  --streamix-space-2: 0.5rem;
+  --streamix-space-3: 0.75rem;
+  --streamix-space-4: 1rem;
+  --streamix-space-5: 1.5rem;
+  --streamix-space-6: 2rem;
+  --streamix-space-8: 3rem;
+  --streamix-space-10: 4rem;
+
+  /* Typography */
+  --streamix-font-display:
+    ui-serif, "Iowan Old Style", "Apple Garamond", Baskerville,
+    "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif;
+  --streamix-font-sans:
+    system-ui, -apple-system, "Segoe UI", "Pretendard Variable", Pretendard,
+    Roboto, "Helvetica Neue", "Noto Sans KR", sans-serif;
+  --streamix-font-mono:
+    ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+
+  /* Layout */
+  --streamix-sidebar-width: 240px;
+  --streamix-content-max: 1280px;
+
+  /* Transitions */
+  --streamix-transition: 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+html.dark {
+  --streamix-background: oklch(0.12 0.005 60);
+  --streamix-foreground: oklch(0.96 0.005 85);
+  --streamix-card: oklch(0.17 0.005 60);
+  --streamix-card-foreground: oklch(0.96 0.005 85);
+  --streamix-muted: oklch(0.22 0.005 60);
+  --streamix-muted-foreground: oklch(0.65 0.005 85);
+  --streamix-border: oklch(0.28 0.005 60);
+  --streamix-border-strong: oklch(0.85 0.005 85);
+  --streamix-input: oklch(0.17 0.005 60);
+  --streamix-ring: oklch(0.96 0.005 85);
+  --streamix-accent: oklch(0.88 0.18 95);
+  --streamix-accent-foreground: oklch(0.12 0.005 60);
+  --streamix-destructive: oklch(0.65 0.24 25);
+  --streamix-destructive-foreground: oklch(0.96 0.005 85);
+  --streamix-live: oklch(0.70 0.23 25);
+  --streamix-success: oklch(0.70 0.18 145);
+
+  --streamix-type-image: oklch(0.75 0.18 145);
+  --streamix-type-video: oklch(0.72 0.18 250);
+  --streamix-type-audio: oklch(0.70 0.22 295);
+  --streamix-type-document: oklch(0.80 0.18 65);
+  --streamix-type-archive: oklch(0.72 0.18 30);
+  --streamix-type-other: oklch(0.65 0.02 60);
+}
+
+/* ============================================================
+   2. RESET / BASE
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--streamix-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--streamix-foreground);
+  background-color: var(--streamix-background);
+  font-feature-settings: "ss01", "cv01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+img, svg, video {
+  display: block;
+  max-width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol {
+  margin: 0;
+  padding: 0;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* ============================================================
+   3. TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+.streamix-display {
+  font-family: var(--streamix-font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.streamix-mono {
+  font-family: var(--streamix-font-mono);
+  font-feature-settings: "tnum", "zero";
+  font-size: 0.8125rem;
+}
+
+.streamix-meta {
+  font-family: var(--streamix-font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-meta--strong {
+  color: var(--streamix-foreground);
+}
+
+/* ============================================================
+   4. APP LAYOUT
+   ============================================================ */
+
+.streamix-app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--streamix-sidebar-width) 1fr;
+}
+
+.streamix-main {
+  min-width: 0;
+  padding: var(--streamix-space-6);
+  max-width: 100%;
+}
+
+.streamix-main-inner {
+  max-width: var(--streamix-content-max);
+  margin: 0 auto;
+}
+
+/* ============================================================
+   5. SIDEBAR
+   ============================================================ */
+
+.streamix-sidebar {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid var(--streamix-border);
+  background-color: var(--streamix-card);
+  z-index: 50;
+}
+
+.streamix-sidebar-mast {
+  padding: var(--streamix-space-5) var(--streamix-space-5) var(--streamix-space-4);
+  border-bottom: 1px solid var(--streamix-border);
+}
+
+.streamix-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-2);
+  font-family: var(--streamix-font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--streamix-foreground);
+}
+
+.streamix-sidebar-brand-mark {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--streamix-foreground);
+}
+
+.streamix-sidebar-issue {
+  margin-top: var(--streamix-space-2);
+  display: flex;
+  gap: var(--streamix-space-2);
+  align-items: baseline;
+}
+
+.streamix-nav {
+  flex: 1;
+  padding: var(--streamix-space-4) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.streamix-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-3);
+  padding: var(--streamix-space-3) var(--streamix-space-5);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--streamix-muted-foreground);
+  border-left: 2px solid transparent;
+  transition: color var(--streamix-transition), border-color var(--streamix-transition), background-color var(--streamix-transition);
+}
+
+.streamix-nav-item:hover {
+  color: var(--streamix-foreground);
+  background-color: var(--streamix-muted);
+}
+
+.streamix-nav-item.is-active {
+  color: var(--streamix-foreground);
+  border-left-color: var(--streamix-border-strong);
+  background-color: var(--streamix-muted);
+}
+
+.streamix-nav-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.streamix-sidebar-foot {
+  padding: var(--streamix-space-4) var(--streamix-space-5);
+  border-top: 1px solid var(--streamix-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--streamix-space-3);
+}
+
+/* ============================================================
+   6. PAGE MAST (masthead)
+   ============================================================ */
+
+.streamix-mast {
+  padding: var(--streamix-space-4) 0 var(--streamix-space-6);
+  border-bottom: 1px solid var(--streamix-border);
+  margin-bottom: var(--streamix-space-8);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--streamix-space-5);
+  flex-wrap: wrap;
+}
+
+.streamix-mast-title {
+  font-family: var(--streamix-font-display);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--streamix-foreground);
+}
+
+.streamix-mast-sub {
+  margin-top: var(--streamix-space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-3);
+  font-size: 0.8125rem;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-mast-rule {
+  width: 2.5rem;
+  height: 1px;
+  background-color: var(--streamix-border-strong);
+}
+
+.streamix-mast-actions {
+  display: flex;
+  gap: var(--streamix-space-3);
+  align-items: center;
+}
+
+/* ============================================================
+   7. CARD
+   ============================================================ */
+
+.streamix-card {
+  background-color: var(--streamix-card);
+  border: 1px solid var(--streamix-border);
+  border-radius: var(--streamix-radius-card);
+  transition: border-color var(--streamix-transition);
+}
+
+.streamix-card:hover {
+  border-color: var(--streamix-border-strong);
+}
+
+.streamix-card--flush:hover {
+  border-color: var(--streamix-border);
+}
+
+.streamix-card-head {
+  padding: var(--streamix-space-4) var(--streamix-space-5);
+  border-bottom: 1px solid var(--streamix-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--streamix-space-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--streamix-foreground);
+}
+
+.streamix-card-head-title {
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-2);
+}
+
+.streamix-card-body {
+  padding: var(--streamix-space-5);
+}
+
+.streamix-card-body--flush {
+  padding: 0;
+}
+
+.streamix-card-foot {
+  padding: var(--streamix-space-4) var(--streamix-space-5);
+  border-top: 1px solid var(--streamix-border);
+}
+
+/* ============================================================
+   8. STAT CARDS
+   ============================================================ */
+
+.streamix-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--streamix-space-4);
+  margin-bottom: var(--streamix-space-8);
+}
+
+.streamix-stat {
+  padding: var(--streamix-space-5);
+  border: 1px solid var(--streamix-border);
+  background-color: var(--streamix-card);
+  transition: border-color var(--streamix-transition);
+  display: flex;
+  flex-direction: column;
+  gap: var(--streamix-space-3);
+  position: relative;
+}
+
+.streamix-stat:hover {
+  border-color: var(--streamix-border-strong);
+}
+
+.streamix-stat-index {
+  font-family: var(--streamix-font-mono);
+  font-size: 0.7rem;
+  color: var(--streamix-muted-foreground);
+  letter-spacing: 0.1em;
+}
+
+.streamix-stat-value {
+  font-family: var(--streamix-font-display);
+  font-weight: 400;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--streamix-foreground);
+  font-feature-settings: "tnum";
+}
+
+.streamix-stat-rule {
+  width: 1.5rem;
+  height: 1px;
+  background-color: var(--streamix-border-strong);
+}
+
+.streamix-stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-stat-tag {
+  position: absolute;
+  top: var(--streamix-space-4);
+  right: var(--streamix-space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--streamix-live);
+}
+
+.streamix-grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--streamix-space-5);
+}
+
+.streamix-grid-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--streamix-space-5);
+}
+
+/* ============================================================
+   9. BUTTONS
+   ============================================================ */
+
+.streamix-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--streamix-space-2);
+  padding: 0.5rem 1rem;
+  font-family: var(--streamix-font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--streamix-border-strong);
+  background-color: transparent;
+  color: var(--streamix-foreground);
+  border-radius: var(--streamix-radius);
+  cursor: pointer;
+  transition: background-color var(--streamix-transition), color var(--streamix-transition), border-color var(--streamix-transition);
+  white-space: nowrap;
+}
+
+.streamix-btn:hover {
+  background-color: var(--streamix-foreground);
+  color: var(--streamix-background);
+}
+
+.streamix-btn--primary {
+  background-color: var(--streamix-foreground);
+  color: var(--streamix-background);
+  border-color: var(--streamix-foreground);
+}
+
+.streamix-btn--primary:hover {
+  background-color: transparent;
+  color: var(--streamix-foreground);
+}
+
+.streamix-btn--ghost {
+  border-color: transparent;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  padding: 0.375rem 0.625rem;
+}
+
+.streamix-btn--ghost:hover {
+  background-color: var(--streamix-muted);
+  color: var(--streamix-foreground);
+}
+
+.streamix-btn--danger {
+  border-color: var(--streamix-destructive);
+  color: var(--streamix-destructive);
+}
+
+.streamix-btn--danger:hover {
+  background-color: var(--streamix-destructive);
+  color: var(--streamix-destructive-foreground);
+}
+
+.streamix-btn--accent {
+  background-color: var(--streamix-accent);
+  color: var(--streamix-accent-foreground);
+  border-color: var(--streamix-accent);
+}
+
+.streamix-btn--accent:hover {
+  background-color: var(--streamix-foreground);
+  color: var(--streamix-background);
+  border-color: var(--streamix-foreground);
+}
+
+.streamix-btn--icon {
+  padding: 0.375rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.streamix-btn--sm {
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.6875rem;
+}
+
+.streamix-btn-group {
+  display: inline-flex;
+  gap: var(--streamix-space-2);
+}
+
+/* ============================================================
+   10. ICONS
+   ============================================================ */
+
+.streamix-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+
+.streamix-icon--sm { width: 0.875rem; height: 0.875rem; }
+.streamix-icon--lg { width: 1.5rem; height: 1.5rem; }
+.streamix-icon--xl { width: 2.5rem; height: 2.5rem; }
+.streamix-icon--2xl { width: 4rem; height: 4rem; }
+
+/* ============================================================
+   11. TABLES
+   ============================================================ */
+
+.streamix-table-wrap {
+  overflow-x: auto;
+}
+
+.streamix-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.streamix-table thead th {
+  padding: var(--streamix-space-3) var(--streamix-space-4);
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--streamix-muted-foreground);
+  border-bottom: 1px solid var(--streamix-border-strong);
+  background-color: var(--streamix-card);
+  white-space: nowrap;
+}
+
+.streamix-table tbody td {
+  padding: var(--streamix-space-4);
+  border-bottom: 1px solid var(--streamix-border);
+  vertical-align: middle;
+}
+
+.streamix-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.streamix-table tbody tr {
+  transition: background-color var(--streamix-transition);
+}
+
+.streamix-table tbody tr:hover {
+  background-color: var(--streamix-muted);
+}
+
+.streamix-table-id {
+  font-family: var(--streamix-font-mono);
+  font-size: 0.75rem;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-table-name {
+  font-weight: 500;
+  color: var(--streamix-foreground);
+  max-width: 24rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   12. BADGES
+   ============================================================ */
+
+.streamix-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  font-family: var(--streamix-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--streamix-border-strong);
+  color: var(--streamix-foreground);
+  background-color: transparent;
+  border-radius: var(--streamix-radius);
+  white-space: nowrap;
+}
+
+.streamix-badge--solid {
+  background-color: var(--streamix-foreground);
+  color: var(--streamix-background);
+}
+
+.streamix-badge--accent {
+  border-color: var(--streamix-accent);
+  color: var(--streamix-accent-foreground);
+  background-color: var(--streamix-accent);
+}
+
+.streamix-badge--success {
+  border-color: var(--streamix-success);
+  color: var(--streamix-success);
+}
+
+.streamix-badge--danger {
+  border-color: var(--streamix-destructive);
+  color: var(--streamix-destructive);
+}
+
+.streamix-badge--live {
+  border-color: var(--streamix-live);
+  color: var(--streamix-live);
+}
+
+.streamix-badge--image    { border-color: var(--streamix-type-image);    color: var(--streamix-type-image); }
+.streamix-badge--video    { border-color: var(--streamix-type-video);    color: var(--streamix-type-video); }
+.streamix-badge--audio    { border-color: var(--streamix-type-audio);    color: var(--streamix-type-audio); }
+.streamix-badge--document { border-color: var(--streamix-type-document); color: var(--streamix-type-document); }
+.streamix-badge--archive  { border-color: var(--streamix-type-archive);  color: var(--streamix-type-archive); }
+.streamix-badge--other    { border-color: var(--streamix-type-other);    color: var(--streamix-type-other); }
+
+/* ============================================================
+   13. THUMBNAILS / FILE ICONS
+   ============================================================ */
+
+.streamix-thumb {
+  width: 56px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--streamix-border);
+  background-color: var(--streamix-muted);
+  border-radius: var(--streamix-radius);
+}
+
+.streamix-file-icon {
+  width: 56px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--streamix-border);
+  background-color: var(--streamix-muted);
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-file-icon--image    { color: var(--streamix-type-image); }
+.streamix-file-icon--video    { color: var(--streamix-type-video); }
+.streamix-file-icon--audio    { color: var(--streamix-type-audio); }
+.streamix-file-icon--document { color: var(--streamix-type-document); }
+.streamix-file-icon--archive  { color: var(--streamix-type-archive); }
+.streamix-file-icon--other    { color: var(--streamix-type-other); }
+
+/* ============================================================
+   14. LIVE DOT / PULSE
+   ============================================================ */
+
+.streamix-pulse {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--streamix-live);
+  box-shadow: 0 0 0 0 var(--streamix-live);
+  animation: streamix-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.streamix-pulse--success {
+  background-color: var(--streamix-success);
+  box-shadow: 0 0 0 0 var(--streamix-success);
+}
+
+@keyframes streamix-pulse {
+  0%   { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  70%  { box-shadow: 0 0 0 8px transparent; opacity: 0.5; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 1; }
+}
+
+/* ============================================================
+   15. PROGRESS / SPINNER / SKELETON
+   ============================================================ */
+
+.streamix-progress {
+  width: 100%;
+  height: 4px;
+  background-color: var(--streamix-muted);
+  overflow: hidden;
+  border: 1px solid var(--streamix-border);
+}
+
+.streamix-progress-bar {
+  height: 100%;
+  background-color: var(--streamix-foreground);
+  width: 0%;
+  transition: width 200ms linear;
+}
+
+.streamix-progress-bar--accent {
+  background-color: var(--streamix-accent);
+}
+
+.streamix-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--streamix-border);
+  border-top-color: var(--streamix-foreground);
+  border-radius: 50%;
+  animation: streamix-spin 0.8s linear infinite;
+}
+
+@keyframes streamix-spin {
+  to { transform: rotate(360deg); }
+}
+
+.streamix-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--streamix-muted) 0%,
+    var(--streamix-border) 50%,
+    var(--streamix-muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: streamix-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes streamix-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ============================================================
+   16. FORM INPUTS
+   ============================================================ */
+
+.streamix-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--streamix-font-sans);
+  font-size: 0.875rem;
+  color: var(--streamix-foreground);
+  background-color: var(--streamix-input);
+  border: 1px solid var(--streamix-border);
+  border-radius: var(--streamix-radius);
+  transition: border-color var(--streamix-transition);
+}
+
+.streamix-input:focus {
+  outline: none;
+  border-color: var(--streamix-ring);
+}
+
+.streamix-input--mono {
+  font-family: var(--streamix-font-mono);
+  font-size: 0.8125rem;
+}
+
+.streamix-input-group {
+  display: flex;
+  gap: var(--streamix-space-2);
+  align-items: stretch;
+}
+
+.streamix-input-group .streamix-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.streamix-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--streamix-muted-foreground);
+  margin-bottom: var(--streamix-space-2);
+}
+
+/* Toggle (auto-refresh switch) */
+.streamix-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--streamix-space-2);
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-switch input {
+  appearance: none;
+  width: 2.25rem;
+  height: 1.125rem;
+  background-color: var(--streamix-muted);
+  border: 1px solid var(--streamix-border-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--streamix-transition);
+}
+
+.streamix-switch input::after {
+  content: "";
+  position: absolute;
+  width: 0.625rem;
+  height: 0.625rem;
+  background-color: var(--streamix-border-strong);
+  top: 50%;
+  left: 0.125rem;
+  transform: translateY(-50%);
+  transition: left var(--streamix-transition), background-color var(--streamix-transition);
+}
+
+.streamix-switch input:checked {
+  background-color: var(--streamix-foreground);
+}
+
+.streamix-switch input:checked::after {
+  left: calc(100% - 0.75rem);
+  background-color: var(--streamix-background);
+}
+
+/* ============================================================
+   17. UPLOAD AREA
+   ============================================================ */
+
+.streamix-upload {
+  border: 1px dashed var(--streamix-border-strong);
+  padding: var(--streamix-space-8) var(--streamix-space-5);
+  text-align: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color var(--streamix-transition), border-color var(--streamix-transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--streamix-space-3);
+}
+
+.streamix-upload:hover,
+.streamix-upload.is-drag {
+  background-color: var(--streamix-muted);
+}
+
+.streamix-upload.is-uploading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.streamix-upload-icon {
+  color: var(--streamix-foreground);
+}
+
+.streamix-upload-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.streamix-upload-meta {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-icon--destructive { color: var(--streamix-destructive); }
+.streamix-icon--accent      { color: var(--streamix-accent); }
+.streamix-icon--muted       { color: var(--streamix-muted-foreground); }
+
+.streamix-icon--type-image    { color: var(--streamix-type-image); }
+.streamix-icon--type-video    { color: var(--streamix-type-video); }
+.streamix-icon--type-audio    { color: var(--streamix-type-audio); }
+.streamix-icon--type-document { color: var(--streamix-type-document); }
+.streamix-icon--type-archive  { color: var(--streamix-type-archive); }
+.streamix-icon--type-other    { color: var(--streamix-type-other); }
+
+/* ============================================================
+   18. MODAL
+   ============================================================ */
+
+.streamix-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: oklch(0 0 0 / 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--streamix-space-4);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--streamix-transition);
+}
+
+.streamix-modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.streamix-modal {
+  background-color: var(--streamix-card);
+  border: 1px solid var(--streamix-border-strong);
+  width: 100%;
+  max-width: 32rem;
+  max-height: calc(100vh - 4rem);
+  overflow: auto;
+  transform: translateY(8px);
+  transition: transform var(--streamix-transition);
+}
+
+.streamix-modal-overlay.is-open .streamix-modal {
+  transform: translateY(0);
+}
+
+.streamix-modal-head {
+  padding: var(--streamix-space-4) var(--streamix-space-5);
+  border-bottom: 1px solid var(--streamix-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.streamix-modal-title {
+  font-family: var(--streamix-font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.streamix-modal-body {
+  padding: var(--streamix-space-5);
+}
+
+.streamix-modal-foot {
+  padding: var(--streamix-space-4) var(--streamix-space-5);
+  border-top: 1px solid var(--streamix-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--streamix-space-3);
+}
+
+.streamix-modal-confirm {
+  text-align: center;
+  padding: var(--streamix-space-4) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--streamix-space-3);
+}
+
+.streamix-modal-confirm-msg { margin: 0; }
+.streamix-modal-confirm-name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.streamix-form-inline { display: inline; }
+
+/* ============================================================
+   19. TOAST
+   ============================================================ */
+
+.streamix-toast-container {
+  position: fixed;
+  top: var(--streamix-space-5);
+  right: var(--streamix-space-5);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--streamix-space-3);
+  pointer-events: none;
+  max-width: 24rem;
+}
+
+.streamix-toast {
+  background-color: var(--streamix-card);
+  border: 1px solid var(--streamix-border-strong);
+  padding: var(--streamix-space-3) var(--streamix-space-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--streamix-space-3);
+  pointer-events: auto;
+  animation: streamix-toast-in 200ms cubic-bezier(0.2, 0, 0, 1);
+  font-size: 0.8125rem;
+}
+
+.streamix-toast--success { border-left: 3px solid var(--streamix-success); }
+.streamix-toast--error   { border-left: 3px solid var(--streamix-destructive); }
+
+.streamix-toast.is-leaving {
+  animation: streamix-toast-out 200ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes streamix-toast-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes streamix-toast-out {
+  to { opacity: 0; transform: translateX(8px); }
+}
+
+/* ============================================================
+   20. EMPTY STATE
+   ============================================================ */
+
+.streamix-empty {
+  text-align: center;
+  padding: var(--streamix-space-10) var(--streamix-space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--streamix-space-3);
+}
+
+.streamix-empty-icon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--streamix-muted-foreground);
+  opacity: 0.5;
+}
+
+.streamix-empty-title {
+  font-family: var(--streamix-font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--streamix-foreground);
+}
+
+.streamix-empty-text {
+  font-size: 0.875rem;
+  color: var(--streamix-muted-foreground);
+  max-width: 24rem;
+}
+
+/* ============================================================
+   21. SESSIONS / LIST ROWS
+   ============================================================ */
+
+.streamix-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.streamix-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-3);
+  padding: var(--streamix-space-3) var(--streamix-space-5);
+  border-bottom: 1px solid var(--streamix-border);
+}
+
+.streamix-list-row:last-child {
+  border-bottom: none;
+}
+
+.streamix-list-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.streamix-list-title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streamix-list-meta {
+  font-family: var(--streamix-font-mono);
+  font-size: 0.7rem;
+  color: var(--streamix-muted-foreground);
+  margin-top: 2px;
+}
+
+/* ============================================================
+   22. FILE DETAIL / MEDIA PREVIEWS
+   ============================================================ */
+
+.streamix-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-2);
+  font-size: 0.75rem;
+  font-family: var(--streamix-font-mono);
+  color: var(--streamix-muted-foreground);
+  margin-bottom: var(--streamix-space-4);
+}
+
+.streamix-breadcrumb a {
+  color: var(--streamix-muted-foreground);
+  transition: color var(--streamix-transition);
+}
+
+.streamix-breadcrumb a:hover { color: var(--streamix-foreground); }
+.streamix-breadcrumb-sep { opacity: 0.4; }
+.streamix-breadcrumb-current { color: var(--streamix-foreground); }
+
+.streamix-media {
+  background-color: oklch(0.10 0 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.streamix-media--padded {
+  padding: var(--streamix-space-8) var(--streamix-space-5);
+  background-color: var(--streamix-muted);
+  color: var(--streamix-foreground);
+  text-align: center;
+}
+
+.streamix-media video {
+  width: 100%;
+  max-height: 540px;
+  display: block;
+}
+
+.streamix-media img {
+  max-width: 100%;
+  max-height: 540px;
+  display: block;
+}
+
+.streamix-media-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--streamix-space-4);
+}
+
+.streamix-media-fallback-icon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background-color: var(--streamix-border);
+  border: 1px solid var(--streamix-border);
+}
+
+.streamix-info-cell {
+  padding: var(--streamix-space-3) var(--streamix-space-4);
+  background-color: var(--streamix-card);
+}
+
+.streamix-info-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--streamix-muted-foreground);
+  margin-bottom: 0.25rem;
+}
+
+.streamix-info-value {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--streamix-foreground);
+  word-break: break-all;
+}
+
+.streamix-info-value--mono {
+  font-family: var(--streamix-font-mono);
+  font-size: 0.75rem;
+}
+
+.streamix-url {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--streamix-border);
+  margin-bottom: var(--streamix-space-3);
+}
+
+.streamix-url input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background-color: var(--streamix-input);
+  font-family: var(--streamix-font-mono);
+  font-size: 0.75rem;
+  color: var(--streamix-foreground);
+  outline: none;
+}
+
+.streamix-url button {
+  padding: 0 0.875rem;
+  border: none;
+  border-left: 1px solid var(--streamix-border);
+  background-color: var(--streamix-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--streamix-muted-foreground);
+  cursor: pointer;
+  transition: background-color var(--streamix-transition), color var(--streamix-transition);
+}
+
+.streamix-url button:hover {
+  background-color: var(--streamix-foreground);
+  color: var(--streamix-background);
+}
+
+.streamix-url button.is-copied {
+  background-color: var(--streamix-success);
+  color: var(--streamix-background);
+}
+
+/* ============================================================
+   23. ALERTS / FLASH MESSAGES
+   ============================================================ */
+
+.streamix-alert {
+  padding: var(--streamix-space-3) var(--streamix-space-4);
+  border: 1px solid var(--streamix-border-strong);
+  background-color: var(--streamix-card);
+  display: flex;
+  align-items: center;
+  gap: var(--streamix-space-3);
+  margin-bottom: var(--streamix-space-4);
+  font-size: 0.8125rem;
+}
+
+.streamix-alert--success { border-left: 3px solid var(--streamix-success); }
+.streamix-alert--error   { border-left: 3px solid var(--streamix-destructive); }
+
+.streamix-alert-close {
+  margin-left: auto;
+  color: var(--streamix-muted-foreground);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color var(--streamix-transition);
+}
+
+.streamix-alert-close:hover {
+  color: var(--streamix-foreground);
+}
+
+/* ============================================================
+   24. PAGINATION
+   ============================================================ */
+
+.streamix-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--streamix-space-1);
+  padding: var(--streamix-space-3);
+}
+
+.streamix-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.625rem;
+  border: 1px solid transparent;
+  font-family: var(--streamix-font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--streamix-muted-foreground);
+  transition: border-color var(--streamix-transition), color var(--streamix-transition), background-color var(--streamix-transition);
+  cursor: pointer;
+}
+
+.streamix-page:hover:not(.is-disabled) {
+  border-color: var(--streamix-border);
+  color: var(--streamix-foreground);
+}
+
+.streamix-page.is-active {
+  background-color: var(--streamix-foreground);
+  color: var(--streamix-background);
+  border-color: var(--streamix-foreground);
+}
+
+.streamix-page.is-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   25. MOBILE NAV / OVERLAY
+   ============================================================ */
+
+.streamix-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: var(--streamix-space-3);
+  left: var(--streamix-space-3);
+  z-index: 60;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--streamix-card);
+  border: 1px solid var(--streamix-border-strong);
+  cursor: pointer;
+}
+
+.streamix-mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: oklch(0 0 0 / 0.5);
+  z-index: 40;
+}
+
+.streamix-mobile-overlay.is-open {
+  display: block;
+}
+
+/* ============================================================
+   26. PAGE LOAD ANIMATIONS
+   ============================================================ */
+
+.streamix-fade-in {
+  animation: streamix-fade-in 400ms cubic-bezier(0.2, 0, 0, 1) backwards;
+}
+
+.streamix-fade-in[data-delay="1"] { animation-delay: 60ms; }
+.streamix-fade-in[data-delay="2"] { animation-delay: 120ms; }
+.streamix-fade-in[data-delay="3"] { animation-delay: 180ms; }
+.streamix-fade-in[data-delay="4"] { animation-delay: 240ms; }
+
+@keyframes streamix-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   27. UTILITY HELPERS
+   ============================================================ */
+
+.streamix-hidden { display: none !important; }
+.streamix-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.streamix-muted { color: var(--streamix-muted-foreground); }
+.streamix-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streamix-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--streamix-space-3);
+}
+
+.streamix-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--streamix-space-4);
+}
+
+.streamix-row-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--streamix-space-3) 0;
+  border-bottom: 1px solid var(--streamix-border);
+  font-size: 0.875rem;
+}
+
+.streamix-row-stat:last-child {
+  border-bottom: none;
+}
+
+.streamix-row-stat-label { color: var(--streamix-muted-foreground); }
+.streamix-row-stat-value { font-weight: 600; font-family: var(--streamix-font-mono); }
+
+/* ============================================================
+   28. POPULAR / GRID TILES
+   ============================================================ */
+
+.streamix-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--streamix-space-3);
+}
+
+.streamix-tile {
+  padding: var(--streamix-space-4);
+  border: 1px solid var(--streamix-border);
+  text-align: center;
+  transition: border-color var(--streamix-transition);
+  cursor: pointer;
+}
+
+.streamix-tile:hover {
+  border-color: var(--streamix-border-strong);
+}
+
+.streamix-tile-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0 auto var(--streamix-space-2);
+  color: var(--streamix-muted-foreground);
+}
+
+.streamix-tile-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streamix-tile-meta {
+  font-family: var(--streamix-font-mono);
+  font-size: 0.7rem;
+  color: var(--streamix-muted-foreground);
+}
+
+/* ============================================================
+   29. RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .streamix-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .streamix-grid-2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .streamix-app {
+    grid-template-columns: 1fr;
+  }
+  .streamix-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform var(--streamix-transition);
+  }
+  .streamix-sidebar.is-open {
+    transform: translateX(0);
+  }
+  .streamix-mobile-toggle {
+    display: flex;
+  }
+  .streamix-main {
+    padding: var(--streamix-space-10) var(--streamix-space-4) var(--streamix-space-5);
+  }
+  .streamix-mast-title { font-size: 2rem; }
+  .streamix-stat-value { font-size: 2.25rem; }
+}
+
+@media (max-width: 480px) {
+  .streamix-stat-grid { grid-template-columns: 1fr; }
+  .streamix-toast-container {
+    left: var(--streamix-space-3);
+    right: var(--streamix-space-3);
+    max-width: none;
+  }
+}
+
+/* ============================================================
+   30. SIZE / SPACING VARIANTS (inline-style elimination)
+   ============================================================ */
+
+.streamix-stat-value--md          { font-size: clamp(2rem, 4vw, 3rem); }
+.streamix-stat-value--sm          { font-size: clamp(1.75rem, 3.5vw, 2.75rem); }
+.streamix-mast-title--compact     { font-size: clamp(1.75rem, 3vw, 2.75rem); }
+
+.streamix-display--md {
+  font-family: var(--streamix-font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.streamix-display--sm {
+  font-family: var(--streamix-font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.streamix-media-fallback audio {
+  width: 100%;
+  max-width: 480px;
+}
+
+.streamix-thumbnail-preview {
+  max-width: 100%;
+  max-height: 200px;
+  display: inline-block;
+}
+
+.streamix-card-body--center { text-align: center; }
+
+.streamix-stack--flush     { gap: 0; }
+.streamix-empty--compact   { padding: 2.5rem 1rem; }
+
+.streamix-mt-4 { margin-top: var(--streamix-space-4); }
+.streamix-mt-5 { margin-top: var(--streamix-space-5); }
+.streamix-mt-6 { margin-top: var(--streamix-space-6); }
+
+.streamix-grow-1   { flex: 1; min-width: 0; }
+.streamix-truncate-md { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.streamix-truncate-sm { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ============================================================
+   31. ACCESSIBILITY (focus-visible + reduced-motion)
+   ============================================================ */
+
+.streamix-btn:focus-visible,
+.streamix-page:focus-visible,
+.streamix-input:focus-visible,
+.streamix-nav-item:focus-visible,
+.streamix-sidebar-brand:focus-visible,
+.streamix-url button:focus-visible,
+.streamix-alert-close:focus-visible,
+.streamix-mobile-toggle:focus-visible {
+  outline: 2px solid var(--streamix-ring);
+  outline-offset: 2px;
+}
+
+.streamix-switch input:focus-visible {
+  outline: 2px solid var(--streamix-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .streamix-pulse,
+  .streamix-spinner,
+  .streamix-skeleton {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   32. BROWSER FALLBACK (OKLCH unsupported)
+   ============================================================ */
+
+@supports not (color: oklch(0 0 0)) {
+  .streamix-modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
+  .streamix-mobile-overlay { background-color: rgba(0, 0, 0, 0.5); }
+  .streamix-media { background-color: #1a1a1a; }
+}
+
+/* ============================================================
+   33. PRINT (kept minimal — admin tool)
+   ============================================================ */
+
+@media print {
+  .streamix-sidebar, .streamix-mobile-toggle, .streamix-toast-container { display: none !important; }
+  .streamix-app { grid-template-columns: 1fr; }
+}
