@@ -1,5 +1,6 @@
 package io.github.junhyeong9812.streamix.starter.autoconfigure;
 
+import io.github.junhyeong9812.streamix.starter.adapter.in.web.StreamixSessionsApiController;
 import io.github.junhyeong9812.streamix.starter.adapter.out.persistence.StreamingSessionRepository;
 import io.github.junhyeong9812.streamix.starter.service.StreamingMonitoringService;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -87,5 +89,28 @@ public class StreamixMonitoringConfiguration {
   public StreamingMonitoringService streamingMonitoringService(StreamingSessionRepository sessionRepository) {
     log.info("Creating StreamingMonitoringService for dashboard statistics");
     return new StreamingMonitoringService(sessionRepository);
+  }
+
+  /**
+   * 활성 스트리밍 세션 JSON API 컨트롤러를 생성합니다.
+   *
+   * <p>대시보드 sessions 페이지의 5초 폴링용 엔드포인트(
+   * {@code GET /api/streamix/sessions/active})를 제공합니다.
+   * 서블릿 기반 웹 환경에서 {@code streamix.api.enabled=true}일 때만 등록됩니다.</p>
+   *
+   * @param monitoringService 모니터링 서비스
+   * @return Sessions JSON API 컨트롤러
+   * @since 3.0.0
+   */
+  @Bean
+  @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+  @ConditionalOnProperty(name = "streamix.api.enabled", havingValue = "true", matchIfMissing = true)
+  @ConditionalOnBean(StreamingMonitoringService.class)
+  @ConditionalOnMissingBean(StreamixSessionsApiController.class)
+  public StreamixSessionsApiController streamixSessionsApiController(
+      StreamingMonitoringService monitoringService
+  ) {
+    log.info("Creating StreamixSessionsApiController for active sessions polling");
+    return new StreamixSessionsApiController(monitoringService);
   }
 }
